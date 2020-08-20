@@ -494,9 +494,9 @@ function complex(container) {
     kind: "persistent_query",
     into: "s2",
     query_text: [
-      "CREATE STREAM clean_orders AS",
-      "  ?",
-      "  FROM orders",
+      "CREATE STREAM s2 AS",
+      "  SELECT *, UCASE(country)",
+      "  FROM s1",
       "  EMIT CHANGES;"
     ],
     select: function(row) {
