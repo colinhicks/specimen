@@ -74,6 +74,18 @@ export function render(data) {
     timeline.seek(Math.max(0, timeline.currentTime - seek_ms));
   };
 
+  // Continuously rewind animation while the rewind button is held down
+  manual_left.onmousedown = () => {
+    manual_left.interval = setInterval(() => {
+      timeline.seek(Math.max(0, timeline.currentTime - seek_ms));
+    }, 25);
+  }
+  manual_left.onmouseup = () => {
+    if (manual_left.interval) {
+      clearInterval(manual_left.interval);
+    }
+  }
+
   const manual_right = document.createElement("button");
   manual_right.id = rendering.manual_right.id;
   manual_right.textContent = rendering.manual_right.text;
@@ -81,6 +93,18 @@ export function render(data) {
     timeline.pause();
     timeline.seek(Math.min(timeline.duration, timeline.currentTime + seek_ms));
   };
+
+  // Continuously play animation while the manual step forward button is held down
+  manual_right.onmousedown = () => {
+    manual_right.interval = setInterval(() => {
+      timeline.seek(Math.max(0, timeline.currentTime + seek_ms));
+    }, 25);
+  }
+  manual_right.onmouseup = () => {
+    if (manual_right.interval) {
+      clearInterval(manual_right.interval);
+    }
+  }
 
   const progress = document.createElement("input");
   progress.id = rendering.progress.id;
