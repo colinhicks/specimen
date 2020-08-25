@@ -189,7 +189,9 @@ Specimen.prototype.animate = function(by_id) {
   };
 
   const timeline = anime.timeline({
-    autoplay: false,
+    autoplay: true,
+    loop: true,
+    endDelay: 250,
     begin: function(anim) {
       rewind_callbacks(anim, anime_callbacks);
     },

@@ -151,7 +151,7 @@ function evaluate_select(runtime_context, query_context, query_parts, before_row
 }
 
 function execute_filter(runtime_context, query_context, query_parts, before_row) {
-  const { offsets, stream_time, pq, pack } = runtime_context;
+  const { offsets, stream_time, pq, pack, lineage } = runtime_context;
 
   const before_record = before_row.vars.record;
   const before_offsets = cloneDeep(offsets[pq]);

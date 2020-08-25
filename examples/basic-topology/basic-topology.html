@@ -8,193 +8,121 @@
   </head>
 
   <body>
-    <div id="rekeying">
-      <div>
-        <h1>Rekeying a transformed stream</h1>
-        <p>What does it look like to transform a stream with ksqlDB, then repartition it into a new one? Press Play to find out. Hover over any event to see its contents. Drag the progress bar back and forth to how things change over time.</p>
+    <h1>How ksqlDB works in 7 animations</h1>
+
+    <p>ksqlDB, the event streaming database, is becoming one of the most popular ways to work with Apache Kafka. Every day we answer many questions about the project, but here’s a question whose answer we always try to improve: how does it work?</p>
+
+    <p>The mechanics behind stream processing can be challenging to grasp. The concepts are abstract, and many of them involve motion—two things that are hard for the mind’s eye to visualize. In this blog, we shine a flightlight in the dark cave of ksqlDB. We illuminate its essential concepts, how they work, and how it all relates to Kafka.</p>
+
+    <p>If you like, you can follow along by executing the example code in ksqlDB yourself. ksqlDB’s quickstart makes it easy to get up and running.</p>
+
+    <div>
+      <h2>Declaring a stream</h2>
+      <p>Stream processing is only interesting when you have more than one thing to process. In Kafka, you store a collection of events in a <em>topic</em>. Each event can contain any raw bytes that you want. In ksqlDB, you store events in a <em>stream</em>. A stream is a topic with a strongly defined schema. You declare it like this:</p>
+
+      <pre class="narrative-code">
+        <code class="lang-sql">
+CREATE STREAM s2 (
+    a VARCHAR KEY,
+    b STRUCT<
+        c VARCHAR,
+        d INT
+    >
+) WITH (
+    kafka_topic = 's2',
+    partitions = 1,
+    value_format = 'avro'
+);
+        </code>
+      </pre>
+
+      <p>When you fire off this statement, what actually happens? If the topic that backs this stream doesn’t exist, ksqlDB issues a call to the Kafka brokers to make a new topic with the specified number of partitions. The stream metadata, like the column layout, serialization scheme, and other information, is placed into ksqlDB’s <em>command topic</em>, which is its internal cluster communication channel. Each ksqlDB server materializes information from the command topic to a local metadata store, giving it a global catalog of objects.</p>
+
+      <p>A newly declared stream has no data in it:</p>
+      <div id="stream" style="width: 300px;">
       </div>
     </div>
 
-    <p>Pretty cool! But what is really going on here? Let's slow things down and take it apart.</p>
+    <div>
+      <h2>Inserting rows</h2>
+      <p>Empty collections aren’t that interesting either. In Kafka, you put a <em>record</em> into a topic. In ksqlDB, you put a <em>row</em> into a stream. A row is just a record with additional metadata. You <em>insert</em> rows like this:</p>
 
-    <div id="stream">
-      <div>
-        <h2>Step 1: Declare a stream</h2>
-        <p>This animation is backed by a JavaScript library. The deal is that you give it the graph of your Kafka data and stream processing topologies, and it draws what happens if you execute it by using an (extremely limited) Kafka Streams JavaScript runtime.</p>
+      <pre class="narrative-code"><code class="lang-sql">
+INSERT INTO raw_movies (
+    id, title, genre
+) VALUES (
+    294, 'Die Hard::1988', 'action'
+);
 
-        <p>Here is what the code looks like. Make a <i>Specimen</i> by choosing a DOM element to render into and supply any customized styles. Then add a source stream. The records in each partition reflect the data that an underlying Kafka record would have.</p>
+INSERT INTO raw_movies (
+    id, title, genre
+) VALUES (
+    354, 'Tree of Life::2011', 'drama'
+);
 
-        <pre class="narrative-code"><code class="lang-javascript">
-  const s = new Specimen(container, styles);
+INSERT INTO raw_movies (
+    id, title, genre
+) VALUES (
+    782, 'A Walk in the Clouds::1995', 'romance'
+);
 
-  s.add_root({
-    name: "orders",
-    kind: "stream",
-    partitions: [
-      [
-        { key: "buyer-1", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 45 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 73 }
-      ],
-      [
-        { key: "buyer-3", value: { amount: 42, country: "mex" }, t: 11 },
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 38 },
-        { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-        { key: "buyer-3", value: { amount: 40, country: "mex" }, t: 60 }
-      ],
-      [
-        { key: "buyer-5", value: { amount: 41, country: "arg" }, t: 24 },
-        { key: "buyer-5", value: { amount: 42, country: "arg" }, t: 43 },
-        { key: "buyer-6", value: { amount: 43, country: "mex" }, t: 67 }
-      ],
-      [
-        { key: "buyer-7", value: { amount: 43, country: "arg" }, t: 19 },
-        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 38 },
-        { key: "buyer-9", value: { amount: 42, country: "usa" }, t: 42 },
-        { key: "buyer-9", value: { amount: 44, country: "usa" }, t: 55 },
-        { key: "buyer-7", value: { amount: 41, country: "arg" }, t: 53 }
-      ]
-    ]
-  });
-    </code></pre>
-        <p>A quick call to render shows the incremental result:</p>
-      </div>
-    </div>
+INSERT INTO raw_movies (
+    id, title, genre
+) VALUES (
+    128, 'The Big Lebowski::1998', 'comedy'
+);
+      </code></pre>
 
-    <div id="transforming">
-      <div>
-        <h2>Step 2: Transform the stream</h2>
-        <p>Derive a new stream from the existing one. Create a new node in the graph for the query, and another for its output stream. The supplied query text doesn't do anything -- it's just to be explicit about how to format it during rendering.</p>
-        <pre class="narrative-code"><code class="lang-javascript">
-  s.add_child(["orders"], {
-    name: "pq1",
-    kind: "persistent_query",
-    into: "clean_orders",
-    query_text: [
-      "CREATE STREAM clean_orders AS",
-      "  SELECT buyer,",
-      "         amount",
-      "         UCASE(country) AS country",
-      "  FROM orders",
-      "  EMIT CHANGES;"
-    ],
-    select: function(row) {
-      const { value } = row;
+      <p>Each time you invoke an <code>INSERT</code> statement, a request with the payload is sent to a ksqlDB server. The server checks that the shape of the data is coherent with respect to the stream’s schema—malformed rows are rejected. If the row’s data types are sane, the server creates a record and automatically serializes its content using the scheme of choice as defined in the stream’s declaration. It uses the Kafka producer client to insert that record into the backing Kafka topic. All of the stream’s data lives directly on the broker. None of it lives in ksqlDB’s servers.</p>
+
+      <p>After the inserts complete, the stream now looks like this. Hover over each row to see its contents. The data displayed describes the underlying Kafka record.</p>
       
-      const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
-      }
+      <div id="inserts" style="width: 300px;">
+      </div>
 
-      return { ...row, ... { value: v } };
-    }
-  });
+      <p>Why does some of the row data end up in the key of the record and some in the value? ksqlDB superimposes a flat column abstraction on top of Kafka’s key/value model, but it doesn’t obliterate it. In the declaration of the stream, <code>col1</code> is qualified with the <code>KEY</code> keyword. That piece of syntax tells ksqlDB to store the data for that column in the key portion of the record—by default, columns are stored in the value. That is how the partition for each row is chosen. When ksqlDB produces the record to the underlying topic, its key content is hashed to select a partition for it to reside in. This causes all rows with the same key to be written to the same partition, which is a useful ordering guarantee.</p>
+    </div>    
 
-  s.add_child(["pq1"], {
-    name: "clean_orders",
-    kind: "stream",
-    partitions: [
-      [],
-      [],
-      [],
-      []
-    ]
-  });            
-    </code></pre>
-        <p>With this addition, you get this:</p>
+    <div>
+      <h2>Transforming a stream</h2>
+      <p>Foo</p>
+
+      <div id="transformation" style="width: 750px;">
       </div>
     </div>
 
-    <div id="coloring">
-      <div>
-        <h2>Step 3: Control the color scheme</h2>
-        <p>In the first example, the colors of the events change as they pass through the first persistent query to signify that they are being transformed. Specimen lets you bend appearances as part of its API. Amend the previous bit of code to include a <i>style</i> parameter to select the fill. The fill is chosen by hashing some of the record data against the partition count, supplied as part of a larger map of runtime context.</p>
-    <pre class="narrative-code"><code class="lang-javascript">
-  s.add_child(["orders"], {
-    name: "pq1",
-    kind: "persistent_query",
-    into: "clean_orders",
-    query_text: [
-      "CREATE STREAM clean_orders AS",
-      "  SELECT buyer,",
-      "         amount",
-      "         UCASE(country) AS country",
-      "  FROM orders",
-      "  EMIT CHANGES;"
-    ],
-    select: function(row) {
-      const { value } = row;
-      
-      const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
-      }
+    <div>
+      <h2>Filtering rows out of a stream</h2>
+      <p>Foo</p>
 
-      return { ...row, ...{ value: v } };
-    },
-    style: {
-      fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494",
-          "#D8365D"
-        ];
-        return flavors[before_row.value.country.hashCode() % flavors.length];
-      }
-    }
-  });
-    </code></pre>
-        <p>Render once more:</p>
+      <div id="filtering" style="width: 750px;">
       </div>
     </div>
 
-    <div id="fully-assembled">
-      <div>
-        <h2>Step 4: Repartition the stream</h2>
-        <p>Lastly, repartition the derived stream. Just supply a <i>partition_by</i> function. When you choose the partition, you get to see the row pre-processing as well as post-processing. This "before/after" model is pervasive in the API, and is highly useful for making complex animations.</p>
-            <pre class="narrative-code"><code class="lang-javascript">
-  s.add_child(["clean_orders"], {
-    name: "pq2",
-    kind: "persistent_query",
-    into: "orders_by_country",
-    query_text: [
-      "CREATE STREAM orders_by_country AS",
-      "  SELECT *",
-      "  FROM clean_orders",
-      "  PARTITION BY country",
-      "  EMIT CHANGES;"
-    ],
-    select: function(row) {
-      return row;
-    },
-    partition_by: function(context, before_row, after_row) {
-      return before_row.value.country.hashCode();
-    }
-  });  
+    <div>
+      <h2>Combining operations into one</h2>
+      <p>Foo</p>
 
-  s.add_child(["pq2"], {
-    name: "orders_by_country",
-    kind: "stream",
-    partitions: [
-      [],
-      [],
-      [],
-      []
-    ]
-  });
-            </code></pre>
+      <div id="compressed" style="width: 750px;">
       </div>
     </div>
 
-    <p>And that's how it works.</p>
+    <div>
+      <h2>Rekeying a stream</h2>
+      <p>Foo</p>
 
-    <div id="complex">
-      <div>
-        <h1>Bonus topology! Something more complex</h1>
+      <div id="rekeying" style="width: 750px;">
       </div>
     </div>
 
+    <div>
+      <h2>Processing with multiple consumers</h2>
+      <p>Foo</p>
+
+      <div id="multi-consumer" style="width: 750px;">
+      </div>
+    </div>
+    
     <script src="./bundle.js"></script>    
   </body>
 </html>
