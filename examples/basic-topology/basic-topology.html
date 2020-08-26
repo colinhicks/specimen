@@ -8,6 +8,7 @@
   </head>
 
   <body>
+    <div>
     <h1>How ksqlDB works in 7 animations</h1>
 
     <p>ksqlDB, the event streaming database, is becoming one of the most popular ways to work with Apache Kafka. Every day we answer many questions about the project, but here’s a question whose answer we always try to improve: how does it work?</p>
@@ -85,10 +86,38 @@ INSERT INTO raw_movies (
 
     <div>
       <h2>Transforming a stream</h2>
-      <p>Foo</p>
+      <p>No one ever sends data to Kafka just to let it sit there. You always want to do something with it. And most often, the data isn’t yet in the exact form that you need to work with it. You need to change it in some way.</p>
+
+      <p>The most elementary way you could do this is by writing a program that uses the Kafka producer and consumer clients. The program would read from the source topic whose data you want to change, apply a function to each message, and write a new record to the output topic. It would loop and run forever. This works, but it is rather low-level. You need to manage schemas, serializers, partitioning strategies, and other pieces of configuration.</p>
+
+      <p>In ksqlDB, you issue a <em>persistent query</em> to <em>transform</em> one stream into another using its SQL programming model. You derive a new stream from an existing one by selecting and manipulating columns of interest:</p>
+
+      <pre class="narrative-code"><code class="lang-sql">
+CREATE STREAM s1_by_country AS
+  SELECT buyer, amount, UCASE(country) AS country
+  FROM s2
+  EMIT CHANGES;
+      </code></pre>
+
+      <p>Persistent queries are little stream processing programs that run forever. In this case, it continually reads rows from <code>s2</code>, applies the transformation logic, and writes rows to <code>s3</code>. You are relieved of all the data-janitorial work: there are no schemas to manage, no serializers to configure, no partitioning strategies to choose. But what is actually happening when you launch this query?</p>
+
+      <p>Each time you run a persistent query, ksqlDB server compiles its textual representation to a physical execution plan as a Kafka Streams topology. The topology runs as a daemon on the server, reacting to new topic records as soon as they become available. This means that all of the processing work happens on ksqlDB server: no processing work happens on the Kafka brokers. If you run ksqlDB as a cluster, the topology scales horizontally across the nodes by internally using Kafka Streams service IDs.</p>
+
+      <p>When everything is connected together and the data is flowing, it looks like this:</p>
 
       <div id="transformation" style="width: 750px;">
       </div>
+
+      <p>What is going on here? What do the moving arrows mean? Why are those numbers changing? And what is "<code>pq1</code>"?</p>
+
+      <p>When a persistent query is created, it is assigned a generated name (in this case, we call it <code>pq1</code> for concision). Rows are read from the stream partitions that the query selects from. As each row passes through the persistent query, the transformation logic is applied to create a new row, which is what the change of color signifies.</p>
+
+      <p>Persistent queries completely manage their own processing progression, even in the presence of faults. ksqlDB durably maintains the highest offset of each input partition. The incrementing numbers underneath the query box describe those values at each point in time. Moreover, the arrows that move from right to left on the input streams show the corresponding offsets, giving you a spatial sense of how far processing has progressed.</p>
+
+      <p>Pause the animation and hover over the output rows. Notice how their contents are transformed, but the rest of their metadata is intact. ksqlDB has taken care of all the bookkeeping for you.</p>
+
+      <p>As you watch data flowing through the topology, you might be wondering how ksqlDB chooses which input partition it will read from next. Is it random? Is it round robin? The answer to that question is the foundation of how ksqlDB deals with out of order data, and it’s something that we’ll describe in a future blog post all on its own. (Spoiler: the short answer is that it picks the smallest timestamp available.)</p>
+      
     </div>
 
     <div>
@@ -122,7 +151,7 @@ INSERT INTO raw_movies (
       <div id="multi-consumer" style="width: 750px;">
       </div>
     </div>
-    
+
     <script src="./bundle.js"></script>    
   </body>
 </html>
