@@ -182,7 +182,11 @@ CREATE STREAM orders_by_country AS
 
     <div>
       <h2>Processing with multiple consumers</h2>
-      <p>Foo</p>
+      <p>One of the most important properties that Kafka offers is the ability for multiple consumers to read from the same topic in a conflict-free manner. Your program can read a series of records and do whatever it likes with them, and so can mine. We don’t need to agree about how to access the data before, during, or after.</p>
+
+      <p>ksqlDB inherits this property. Every persistent query is transparently assigned a group ID, which means that multiple persistent queries can read from the same stream. They are guaranteed to receive the same rows in the same order. But this also means that when you add nodes to your cluster and scale an individual persistent query across them, they will collectively load balance in the incoming data across them. The work will be shared, and no rows will be dropped or duplicated.</p>
+
+      <p>Here is what it would look like if we added another persistent query (<code>pq3</code>, query omitted for brevity) which reads from stream <code>s2</code>, which is shared by <code>pq2</code>.</p>
 
       <div id="multi-consumer" style="width: 750px;">
       </div>
@@ -190,7 +194,9 @@ CREATE STREAM orders_by_country AS
 
     <div>
       <h2>Learning more</h2>
-      <p>Foo</p>
+      <p>ksqlDB’s key constructs are concise, composable, and elegant. They offer a higher-productivity interface for working Kafka without diluting its core concepts.</p>
+
+      <p>...</p>
     </div>
 
     <script src="./bundle.js"></script>    
