@@ -23,7 +23,7 @@ Object.defineProperty(String.prototype, 'hashCode', {
 function stream(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 350,
+    svg_height: 275,
 
     pq_width: 150,
     pq_height: 150,
@@ -65,7 +65,7 @@ function stream(container) {
 function inserts(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 350,
+    svg_height: 275,
 
     pq_width: 150,
     pq_height: 150,
@@ -123,7 +123,7 @@ function inserts(container) {
 function transformation(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 350,
+    svg_height: 325,
 
     pq_width: 150,
     pq_height: 150,
@@ -217,7 +217,7 @@ function transformation(container) {
 function filtering(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 350,
+    svg_height: 275,
 
     pq_width: 75,
     pq_height: 75,
@@ -343,7 +343,7 @@ function filtering(container) {
 function compressed(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 350,
+    svg_height: 275,
 
     pq_width: 75,
     pq_height: 75,
@@ -442,7 +442,7 @@ function compressed(container) {
 function rekeying(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 350,
+    svg_height: 275,
 
     pq_width: 75,
     pq_height: 75,
@@ -571,7 +571,7 @@ function rekeying(container) {
 function consumers(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 700,
+    svg_height: 675,
 
     pq_width: 75,
     pq_height: 75,
