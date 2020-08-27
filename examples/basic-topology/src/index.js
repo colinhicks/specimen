@@ -96,23 +96,26 @@ function inserts(container) {
     kind: "stream",
     partitions: [
       [
-        { key: "buyer-7", value: { amount: 43, country: "arg" }, t: 19 },
-        { key: "buyer-1", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 45 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 73 }
+        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
+        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
+        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
+        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
+        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
       ],
       [
-        { key: "buyer-3", value: { amount: 42, country: "mex" }, t: 11 },
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 38 },
-        { key: "buyer-9", value: { amount: 44, country: "usa" }, t: 55 },
+        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
+        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
+        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
+        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
         { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-        { key: "buyer-3", value: { amount: 40, country: "mex" }, t: 60 }
+
       ],
       [
-        { key: "buyer-5", value: { amount: 41, country: "arg" }, t: 24 },
-        { key: "buyer-5", value: { amount: 42, country: "arg" }, t: 43 },
-        { key: "buyer-6", value: { amount: 43, country: "mex" }, t: 67 },
-        { key: "buyer-9", value: { amount: 42, country: "usa" }, t: 42 }
+        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
+        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
+        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
+        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
+        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
       ]
     ]
   });
@@ -154,23 +157,26 @@ function transformation(container) {
     kind: "stream",
     partitions: [
       [
-        { key: "buyer-7", value: { amount: 43, country: "arg" }, t: 19 },
-        { key: "buyer-1", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 45 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 73 }
+        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
+        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
+        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
+        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
+        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
       ],
       [
-        { key: "buyer-3", value: { amount: 42, country: "mex" }, t: 11 },
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 38 },
-        { key: "buyer-9", value: { amount: 44, country: "usa" }, t: 55 },
+        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
+        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
+        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
+        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
         { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-        { key: "buyer-3", value: { amount: 40, country: "mex" }, t: 60 }
+
       ],
       [
-        { key: "buyer-5", value: { amount: 41, country: "arg" }, t: 24 },
-        { key: "buyer-5", value: { amount: 42, country: "arg" }, t: 43 },
-        { key: "buyer-6", value: { amount: 43, country: "mex" }, t: 67 },
-        { key: "buyer-9", value: { amount: 42, country: "usa" }, t: 42 }
+        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
+        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
+        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
+        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
+        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
       ]
     ]
   });
@@ -193,8 +199,7 @@ function transformation(container) {
         const flavors = [
           "#38CCED",
           "#0074A2",
-          "#829494",
-          "#D8365D"
+          "#829494"
         ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
@@ -248,23 +253,26 @@ function filtering(container) {
     kind: "stream",
     partitions: [
       [
-        { key: "buyer-7", value: { amount: 43, country: "arg" }, t: 19 },
-        { key: "buyer-1", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 45 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 73 }
+        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
+        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
+        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
+        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
+        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
       ],
       [
-        { key: "buyer-3", value: { amount: 42, country: "mex" }, t: 11 },
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 38 },
-        { key: "buyer-9", value: { amount: 44, country: "usa" }, t: 55 },
+        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
+        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
+        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
+        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
         { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-        { key: "buyer-3", value: { amount: 40, country: "mex" }, t: 60 }
+
       ],
       [
-        { key: "buyer-5", value: { amount: 41, country: "arg" }, t: 24 },
-        { key: "buyer-5", value: { amount: 42, country: "arg" }, t: 43 },
-        { key: "buyer-6", value: { amount: 43, country: "mex" }, t: 67 },
-        { key: "buyer-9", value: { amount: 42, country: "usa" }, t: 42 }
+        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
+        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
+        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
+        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
+        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
       ]
     ]
   });
@@ -289,8 +297,7 @@ function filtering(container) {
         const flavors = [
           "#38CCED",
           "#0074A2",
-          "#829494",
-          "#D8365D"
+          "#829494"
         ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
@@ -323,8 +330,8 @@ function filtering(container) {
       return row;
     },
     where: function(context, row) {
-      return row.value.amount != 42;
-    }
+      return row.value.amount > 41;
+    },
   });
 
   s.add_child(["pq2"], {
@@ -374,23 +381,26 @@ function compressed(container) {
     kind: "stream",
     partitions: [
       [
-        { key: "buyer-7", value: { amount: 43, country: "arg" }, t: 19 },
-        { key: "buyer-1", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 45 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 73 }
+        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
+        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
+        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
+        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
+        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
       ],
       [
-        { key: "buyer-3", value: { amount: 42, country: "mex" }, t: 11 },
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 38 },
-        { key: "buyer-9", value: { amount: 44, country: "usa" }, t: 55 },
+        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
+        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
+        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
+        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
         { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-        { key: "buyer-3", value: { amount: 40, country: "mex" }, t: 60 }
+
       ],
       [
-        { key: "buyer-5", value: { amount: 41, country: "arg" }, t: 24 },
-        { key: "buyer-5", value: { amount: 42, country: "arg" }, t: 43 },
-        { key: "buyer-6", value: { amount: 43, country: "mex" }, t: 67 },
-        { key: "buyer-9", value: { amount: 42, country: "usa" }, t: 42 }
+        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
+        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
+        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
+        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
+        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
       ]
     ]
   });
@@ -411,15 +421,14 @@ function compressed(container) {
       return row;
     },
     where: function(context, row) {
-      return row.value.amount != 42;
+      return row.value.amount > 41;
     },
     style: {
       fill: function(before_row, after_row) {
         const flavors = [
           "#38CCED",
           "#0074A2",
-          "#829494",
-          "#D8365D"
+          "#829494"
         ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
@@ -473,23 +482,26 @@ function rekeying(container) {
     kind: "stream",
     partitions: [
       [
-        { key: "buyer-7", value: { amount: 43, country: "arg" }, t: 19 },
-        { key: "buyer-1", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 45 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 73 }
+        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
+        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
+        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
+        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
+        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
       ],
       [
-        { key: "buyer-3", value: { amount: 42, country: "mex" }, t: 11 },
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 38 },
-        { key: "buyer-9", value: { amount: 44, country: "usa" }, t: 55 },
+        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
+        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
+        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
+        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
         { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-        { key: "buyer-3", value: { amount: 40, country: "mex" }, t: 60 }
+
       ],
       [
-        { key: "buyer-5", value: { amount: 41, country: "arg" }, t: 24 },
-        { key: "buyer-5", value: { amount: 42, country: "arg" }, t: 43 },
-        { key: "buyer-6", value: { amount: 43, country: "mex" }, t: 67 },
-        { key: "buyer-9", value: { amount: 42, country: "usa" }, t: 42 }
+        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
+        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
+        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
+        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
+        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
       ]
     ]
   });
@@ -510,15 +522,14 @@ function rekeying(container) {
       return row;
     },
     where: function(context, row) {
-      return row.value.amount != 42;
+      return row.value.amount > 41;
     },
     style: {
       fill: function(before_row, after_row) {
         const flavors = [
           "#38CCED",
           "#0074A2",
-          "#829494",
-          "#D8365D"
+          "#829494"
         ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
@@ -604,23 +615,26 @@ function consumers(container) {
     kind: "stream",
     partitions: [
       [
-        { key: "buyer-7", value: { amount: 43, country: "arg" }, t: 19 },
-        { key: "buyer-1", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 45 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 73 }
+        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
+        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
+        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
+        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
+        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
       ],
       [
-        { key: "buyer-3", value: { amount: 42, country: "mex" }, t: 11 },
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 38 },
-        { key: "buyer-9", value: { amount: 44, country: "usa" }, t: 55 },
+        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
+        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
+        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
+        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
         { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-        { key: "buyer-3", value: { amount: 40, country: "mex" }, t: 60 }
+
       ],
       [
-        { key: "buyer-5", value: { amount: 41, country: "arg" }, t: 24 },
-        { key: "buyer-5", value: { amount: 42, country: "arg" }, t: 43 },
-        { key: "buyer-6", value: { amount: 43, country: "mex" }, t: 67 },
-        { key: "buyer-9", value: { amount: 42, country: "usa" }, t: 42 }
+        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
+        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
+        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
+        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
+        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
       ]
     ]
   });
@@ -641,15 +655,14 @@ function consumers(container) {
       return row;
     },
     where: function(context, row) {
-      return row.value.amount != 42;
+      return row.value.amount > 41;
     },
     style: {
       fill: function(before_row, after_row) {
         const flavors = [
           "#38CCED",
           "#0074A2",
-          "#829494",
-          "#D8365D"
+          "#829494"
         ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
@@ -712,7 +725,7 @@ function consumers(container) {
       return row;
     },
     partition_by: function(context, before_row, after_row) {
-      return before_row.value.amount;
+      return (before_row.value.country + " ").hashCode();
     }
   });
 

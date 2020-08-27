@@ -37,7 +37,7 @@ CREATE STREAM s2 (
         </code>
       </pre>
 
-      <p>When you fire off this statement, what actually happens? If the topic that backs this stream doesn’t exist, ksqlDB issues a call to the Kafka brokers to make a new topic with the specified number of partitions. The stream metadata, like the column layout, serialization scheme, and other information, is placed into ksqlDB’s <em>command topic</em>, which is its internal cluster communication channel. Each ksqlDB server materializes information from the command topic to a local metadata store, giving it a global catalog of objects.</p>
+      <p>When you fire off this statement from ksqlDB’s client to its server, what actually happens? If the topic that backs this stream doesn’t exist, ksqlDB issues a call to the Kafka brokers to make a new topic with the specified number of partitions. The stream metadata, like the column layout, serialization scheme, and other information, is placed into ksqlDB’s <em>command topic</em>, which is its internal cluster communication channel. Each ksqlDB server materializes information from the command topic to a local metadata store, giving it a global catalog of objects.</p>
 
       <p>A newly declared stream has no data in it:</p>
       <div id="stream" style="width: 300px;">
@@ -112,7 +112,7 @@ CREATE STREAM s1_by_country AS
 
       <p>What is going on here? What do the moving arrows mean? Why are those numbers changing? And what is "<code>pq1</code>"?</p>
 
-      <p>When a persistent query is created, it is assigned a generated name (in this case, we call it <code>pq1</code> for concision). Rows are read from the stream partitions that the query selects from. As each row passes through the persistent query, the transformation logic is applied to create a new row, which is what the change of color signifies.</p>
+      <p>When a persistent query is created, it is assigned a generated name (in this case, we call it <code>pq1</code> for concision). Rows are read from the stream partitions that the query selects from. As each row passes through the persistent query, the transformation logic is applied to create a new row, which is what the change of color signifies. When you read a record using Kafka, it is never deleted—you effectively receive a copy of it. That is why the leftmost rows remain in place, and clones of them appear to the right of each partition before they are sent to the persistent query box.</p>
 
       <p>Persistent queries completely manage their own processing progression, even in the presence of faults. ksqlDB durably maintains the highest offset of each input partition. The incrementing numbers underneath the query box describe those values at each point in time. Moreover, the arrows that move from right to left on the input streams show the corresponding offsets, giving you a spatial sense of how far processing has progressed.</p>
 
