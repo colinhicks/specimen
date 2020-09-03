@@ -50,7 +50,7 @@ function stream(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "s1",
+    name: "orders",
     kind: "stream",
     partitions: [
       [],
@@ -92,7 +92,7 @@ function inserts(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "s1",
+    name: "orders",
     kind: "stream",
     partitions: [
       [
@@ -153,7 +153,7 @@ function transformation(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "s1",
+    name: "orders",
     kind: "stream",
     partitions: [
       [
@@ -181,15 +181,17 @@ function transformation(container) {
     ]
   });
 
-  s.add_child(["s1"], {
+  s.add_child(["orders"], {
     name: "pq1",
     kind: "persistent_query",
-    into: "s2",
+    into: "clean",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer, amount, UCASE(country) AS country",
-      "  FROM s2",
-      "  EMIT CHANGES;"
+      "CREATE STREAM clean AS",
+      "    SELECT buyer,",
+      "           amount,",
+      "           UCASE(country) AS country",
+      "    FROM orders",
+      "    EMIT CHANGES;"
     ],
     select: function(row) {
       return row;
@@ -207,7 +209,7 @@ function transformation(container) {
   });
 
   s.add_child(["pq1"], {
-    name: "s2",
+    name: "clean",
     kind: "stream",
     partitions: [
       [],
@@ -249,7 +251,7 @@ function filtering(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "s1",
+    name: "orders",
     kind: "stream",
     partitions: [
       [
@@ -277,17 +279,17 @@ function filtering(container) {
     ]
   });
 
-  s.add_child(["s1"], {
+  s.add_child(["orders"], {
     name: "pq1",
     kind: "persistent_query",
-    into: "s2",
+    into: "clean",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer,",
-      "         amount,",
-      "          UCASE(country) AS country",
-      "  FROM s2",
-      "  EMIT CHANGES;"
+      "CREATE STREAM clean AS",
+      "    SELECT buyer,",
+      "           amount,",
+      "           UCASE(country) AS country",
+      "    FROM orders",
+      "    EMIT CHANGES;"
     ],
     select: function(row) {
       return row;
@@ -305,7 +307,7 @@ function filtering(container) {
   });
 
   s.add_child(["pq1"], {
-    name: "s2",
+    name: "clean",
     kind: "stream",
     partitions: [
       [],
@@ -314,17 +316,16 @@ function filtering(container) {
     ]
   });
 
-  s.add_child(["s2"], {
+  s.add_child(["clean"], {
     name: "pq2",
     kind: "persistent_query",
-    into: "s3",
+    into: "big_orders",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer,",
-      "         amount,",
-      "          UCASE(country) AS country",
-      "  FROM s2",
-      "  EMIT CHANGES;"
+      "CREATE STREAM big_orders AS",
+      "    SELECT buyer, amount, country",
+      "    FROM clean",
+      "    WHERE amount > 41",
+      "    EMIT CHANGES;"
     ],
     select: function(row) {
       return row;
@@ -335,7 +336,7 @@ function filtering(container) {
   });
 
   s.add_child(["pq2"], {
-    name: "s3",
+    name: "big_orders",
     kind: "stream",
     partitions: [
       [],
@@ -377,7 +378,7 @@ function compressed(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "s1",
+    name: "orders",
     kind: "stream",
     partitions: [
       [
@@ -405,17 +406,18 @@ function compressed(container) {
     ]
   });
 
-  s.add_child(["s1"], {
+  s.add_child(["orders"], {
     name: "pq1",
     kind: "persistent_query",
-    into: "s2",
+    into: "high_pri",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer,",
-      "         amount,",
-      "          UCASE(country) AS country",
-      "  FROM s2",
-      "  EMIT CHANGES;"
+      "CREATE STREAM high_pri AS",
+      "    SELECT buyer,",
+      "           amount,",
+      "           UCASE(country) AS country",
+      "    FROM orders",
+      "    WHERE amount > 41",
+      "    EMIT CHANGES;"
     ],
     select: function(row) {
       return row;
@@ -436,7 +438,7 @@ function compressed(container) {
   });
 
   s.add_child(["pq1"], {
-    name: "s2",
+    name: "high_pri",
     kind: "stream",
     partitions: [
       [],
@@ -478,7 +480,7 @@ function rekeying(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "s1",
+    name: "orders",
     kind: "stream",
     partitions: [
       [
@@ -506,17 +508,18 @@ function rekeying(container) {
     ]
   });
 
-  s.add_child(["s1"], {
+  s.add_child(["orders"], {
     name: "pq1",
     kind: "persistent_query",
-    into: "s2",
+    into: "high_pri",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer,",
-      "         amount,",
-      "          UCASE(country) AS country",
-      "  FROM s2",
-      "  EMIT CHANGES;"
+      "CREATE STREAM high_pri AS",
+      "    SELECT buyer,",
+      "           amount,",
+      "           UCASE(country) AS country",
+      "    FROM orders",
+      "    WHERE amount > 41",
+      "    EMIT CHANGES;"
     ],
     select: function(row) {
       return row;
@@ -537,7 +540,7 @@ function rekeying(container) {
   });
 
   s.add_child(["pq1"], {
-    name: "s2",
+    name: "high_pri",
     kind: "stream",
     partitions: [
       [],
@@ -546,17 +549,16 @@ function rekeying(container) {
     ]
   });
 
-  s.add_child(["s2"], {
+  s.add_child(["high_pri"], {
     name: "pq2",
     kind: "persistent_query",
-    into: "s3",
+    into: "by_country",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer,",
-      "         amount,",
-      "          UCASE(country) AS country",
-      "  FROM s2",
-      "  EMIT CHANGES;"
+      "CREATE STREAM by_country AS",
+      "    SELECT *",
+      "    FROM high_pri",
+      "    PARTITION BY country",
+      "    EMIT CHANGES;"
     ],
     select: function(row) {
       return row;
@@ -567,7 +569,7 @@ function rekeying(container) {
   });
 
   s.add_child(["pq2"], {
-    name: "s3",
+    name: "by_country",
     kind: "stream",
     partitions: [
       [],
@@ -611,7 +613,7 @@ function consumers(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "s1",
+    name: "orders",
     kind: "stream",
     partitions: [
       [
@@ -639,17 +641,18 @@ function consumers(container) {
     ]
   });
 
-  s.add_child(["s1"], {
+  s.add_child(["orders"], {
     name: "pq1",
     kind: "persistent_query",
-    into: "s2",
+    into: "high_pri",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer,",
-      "         amount,",
-      "          UCASE(country) AS country",
-      "  FROM s2",
-      "  EMIT CHANGES;"
+      "CREATE STREAM high_pri AS",
+      "    SELECT buyer,",
+      "           amount,",
+      "           UCASE(country) AS country",
+      "    FROM orders",
+      "    WHERE amount > 41",
+      "    EMIT CHANGES;"
     ],
     select: function(row) {
       return row;
@@ -670,7 +673,7 @@ function consumers(container) {
   });
 
   s.add_child(["pq1"], {
-    name: "s2",
+    name: "high_pri",
     kind: "stream",
     partitions: [
       [],
@@ -679,17 +682,16 @@ function consumers(container) {
     ]
   });
 
-  s.add_child(["s2"], {
+  s.add_child(["high_pri"], {
     name: "pq2",
     kind: "persistent_query",
-    into: "s3",
+    into: "by_country",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer,",
-      "         amount,",
-      "          UCASE(country) AS country",
-      "  FROM s2",
-      "  EMIT CHANGES;"
+      "CREATE STREAM by_country AS",
+      "    SELECT *",
+      "    FROM high_pri",
+      "    PARTITION BY country",
+      "    EMIT CHANGES;"
     ],
     select: function(row) {
       return row;
@@ -700,7 +702,7 @@ function consumers(container) {
   });
 
   s.add_child(["pq2"], {
-    name: "s3",
+    name: "by_country",
     kind: "stream",
     partitions: [
       [],
@@ -709,10 +711,10 @@ function consumers(container) {
     ]
   });
 
-  s.add_child(["s2"], {
+  s.add_child(["high_pri"], {
     name: "pq3",
     kind: "persistent_query",
-    into: "s4",
+    into: "by_zone",
     query_text: [
       "CREATE STREAM s1_by_country AS",
       "  SELECT buyer,",
@@ -730,7 +732,7 @@ function consumers(container) {
   });
 
   s.add_child(["pq3"], {
-    name: "s4",
+    name: "by_zone",
     kind: "stream",
     partitions: [
       [],

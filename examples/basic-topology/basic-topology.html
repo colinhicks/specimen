@@ -23,16 +23,14 @@
 
       <pre class="narrative-code">
         <code class="lang-sql">
-CREATE STREAM s2 (
-    a VARCHAR KEY,
-    b STRUCT<
-        c VARCHAR,
-        d INT
-    >
+CREATE STREAM orders (
+    user VARCHAR KEY,
+    country VARCHAR,
+    amount INT
 ) WITH (
-    kafka_topic = 's2',
-    partitions = 1,
-    value_format = 'avro'
+    kafka_topic = 'orders',
+    partitions = 3,
+    value_format = 'json'
 );
         </code>
       </pre>
@@ -49,29 +47,23 @@ CREATE STREAM s2 (
       <p>Empty collections aren’t that interesting either. In Kafka, you put a <em>record</em> into a topic. In ksqlDB, you put a <em>row</em> into a stream. A row is just a record with additional metadata. You <em>insert</em> rows like this:</p>
 
       <pre class="narrative-code"><code class="lang-sql">
-INSERT INTO raw_movies (
-    id, title, genre
-) VALUES (
-    294, 'Die Hard::1988', 'action'
-);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-1', 'usa', 45);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-2', 'eth', 41);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-1', 'usa', 42);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-3', 'grc', 42);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-3', 'grc', 40);
 
-INSERT INTO raw_movies (
-    id, title, genre
-) VALUES (
-    354, 'Tree of Life::2011', 'drama'
-);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-4', 'eth', 43);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-6', 'grc', 43);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-5', 'usa', 41);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-5', 'usa', 42);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-4', 'eth', 41);
 
-INSERT INTO raw_movies (
-    id, title, genre
-) VALUES (
-    782, 'A Walk in the Clouds::1995', 'romance'
-);
-
-INSERT INTO raw_movies (
-    id, title, genre
-) VALUES (
-    128, 'The Big Lebowski::1998', 'comedy'
-);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-7', 'grc', 43);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-8', 'usa', 40);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-9', 'eth', 40);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-9', 'eth', 44);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-7', 'grc', 41);
       </code></pre>
 
       <p>Each time you invoke an <code>INSERT</code> statement, a request with the payload is sent to a ksqlDB server. The server checks that the shape of the data is coherent with respect to the stream’s schema—malformed rows are rejected. If the row’s data types are sane, the server creates a record and automatically serializes its content using the scheme of choice as defined in the stream’s declaration. It uses the Kafka producer client to insert that record into the backing Kafka topic. All of the stream’s data lives directly on the broker. None of it lives in ksqlDB’s servers.</p>
@@ -83,7 +75,7 @@ INSERT INTO raw_movies (
 
       <p>Why does some of the row data end up in the key of the record and some in the value? ksqlDB superimposes a flat column abstraction on top of Kafka’s key/value model, but it doesn’t obliterate it.</p>
 
-      <p>In the declaration of the stream, <code>col1</code> is qualified with the <code>KEY</code> keyword. That piece of syntax tells ksqlDB to store the data for that column in the key portion of the record—by default, columns are stored in the value. That is how the partition for each row is chosen. When ksqlDB produces the record to the underlying topic, its key content is hashed to select a partition for it to reside in. This causes all rows with the same key to be written to the same partition, which is a useful ordering guarantee.</p>
+      <p>In the declaration of the stream, <code>user</code> is qualified with the <code>KEY</code> keyword. That piece of syntax tells ksqlDB to store the data for that column in the key portion of the record—by default, columns are stored in the value. That is how the partition for each row is chosen. When ksqlDB produces the record to the underlying topic, its key content is hashed to select a partition for it to reside in. This causes all rows with the same key to be written to the same partition, which is a useful ordering guarantee.</p>
     </div>    
 
     <div>
@@ -95,13 +87,15 @@ INSERT INTO raw_movies (
       <p>In ksqlDB, you issue a <em>persistent query</em> to <em>transform</em> one stream into another using its SQL programming model. You derive a new stream from an existing one by selecting and manipulating columns of interest:</p>
 
       <pre class="narrative-code"><code class="lang-sql">
-CREATE STREAM s1_by_country AS
-  SELECT buyer, amount, UCASE(country) AS country
-  FROM s2
-  EMIT CHANGES;
+CREATE STREAM clean AS
+    SELECT buyer,
+           amount,
+           UCASE(country) AS country
+    FROM orders
+    EMIT CHANGES;
       </code></pre>
 
-      <p>Persistent queries are little stream processing programs that run indefinitely. In this case, it continually reads rows from <code>s2</code>, applies the transformation logic, and writes rows to <code>s3</code>. You are relieved of all data-janitorial work: there are no schemas to manage, no serializers to configure, no partitioning strategies to choose. But what is actually happening when you launch this query?</p>
+      <p>Persistent queries are little stream processing programs that run indefinitely. In this case, it continually reads rows from <code>orders</code>, applies the transformation logic, and writes rows to <code>clean</code>. You are relieved of all data-janitorial work: there are no schemas to manage, no serializers to configure, no partitioning strategies to choose. But what is actually happening when you launch this query?</p>
 
       <p>Each time you run a persistent query, ksqlDB server compiles the query's textual representation to a physical execution plan as a Kafka Streams topology. The topology runs as a daemon on the server, reacting to new topic records as soon as they become available. This means that all of the processing work happens on ksqlDB server: no processing work happens on the Kafka brokers. If you run ksqlDB as a cluster, the topology scales horizontally across the nodes by internally using Kafka Streams service IDs.</p>
 
@@ -126,10 +120,11 @@ CREATE STREAM s1_by_country AS
       <p>Let’s look at another simple operation: filtering. Filters are used to discard rows that you do not need or want. Just like transforms, filters are specified using simple SQL syntax.</p>
 
       <pre class="narrative-code"><code class="lang-sql">
-CREATE STREAM s4 AS
-    SELECT *
-      FROM s3
-      WHERE author = 'George R. R. Martin';
+CREATE STREAM big_orders AS
+    SELECT buyer, amount, country
+    FROM clean
+    WHERE amount > 41
+    EMIT CHANGES;
       </code></pre>
 
       <p>When you write ksqlDB programs, you chain streams (and tables, which we’ll get to in the future) together. You create a figurative pathway for your data to traverse, with each step in the way performing a step of processing. ksqlDB handles the mechanics of how your data is propagated through the chain.</p>
@@ -145,11 +140,13 @@ CREATE STREAM s4 AS
       <p>In ksqlDB, you can combine a wide range of operations into a single query. It’s composable query syntax allows you to fuse discrete, yet logical conjoined, operations into one.</p>
 
       <pre class="narrative-code"><code class="lang-sql">
-CREATE STREAM s1_by_country AS
-  SELECT buyer, amount, UCASE(country) AS country
-  FROM s2
-  WHERE foo= ‘bar’
-  EMIT CHANGES;
+CREATE STREAM high_pri AS
+    SELECT buyer,
+           amount,
+           UCASE(country) AS country
+    FROM orders
+    WHERE amount > 41
+    EMIT CHANGES;
       </code></pre>
       
       <p>This persistent query supplants the previous two that we wrote. It has the advantage of performing all of the computation in one place, discarding rows as early as possible.</p>
@@ -165,14 +162,14 @@ CREATE STREAM s1_by_country AS
       <p>In Kafka, partitioning controls data locality. Each partition lives in its entirety on a broker. That is why the choice of how you key your records is such a crucial one. If you use the Kafka clients to process your data, you need to be careful that you’ve set this up right. But in ksqlDB, this is just another SQL clause.</p>
 
       <pre class="narrative-code"><code class="lang-sql">
-CREATE STREAM orders_by_country AS
-  SELECT *
-  FROM clean_orders
-  PARTITION BY country
-  EMIT CHANGES;
+CREATE STREAM by_country AS
+    SELECT *
+    FROM high_pri
+    PARTITION BY country
+    EMIT CHANGES;
       </code></pre>
 
-      <p>What happens when you execute this statement is that ksqlDB creates a new persistent query. It continually reads from <code>clean_orders</code>, applies any additional logic (none in this case, since it simply selects everything), and writes a new record to <code>orders_by_country</code> with a new key. The value of each key is the content of country. This has the effect of colocating all rows with the same country in the same partition. As we’ll explore in a future blog post, this colocation property is essential for stateful operations like streaming join and incremental aggregations.</p>
+      <p>What happens when you execute this statement is that ksqlDB creates a new persistent query. It continually reads from <code>clean</code>, applies any additional logic (none in this case, since it simply selects everything), and writes a new record to <code>by_country</code> with a new key. The value of each key is the content of country. This has the effect of colocating all rows with the same country in the same partition. As we’ll explore in a future blog post, this colocation property is essential for stateful operations like streaming join and incremental aggregations.</p>
 
       <div id="rekeying" style="width: 750px;">
       </div>
@@ -186,7 +183,7 @@ CREATE STREAM orders_by_country AS
 
       <p>ksqlDB inherits this property. Every persistent query is transparently assigned a group ID, which means that multiple persistent queries can read from the same stream. They are guaranteed to receive the same rows in the same order. But this also means that when you add nodes to your cluster and scale an individual persistent query across them, they will collectively load balance in the incoming data across them. The work will be shared, and no rows will be dropped or duplicated.</p>
 
-      <p>Here is what it would look like if we added another persistent query (<code>pq3</code>, query omitted for brevity) which reads from stream <code>s2</code>, which is shared by <code>pq2</code>.</p>
+      <p>Here is what it would look like if we added another persistent query (<code>pq3</code>, query omitted for brevity) which reads from stream <code>high_pri</code>, which is shared by <code>pq2</code>.</p>
 
       <div id="multi-consumer" style="width: 750px;">
       </div>

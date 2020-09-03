@@ -42,6 +42,11 @@ body {
     font-family: monospace;
 }
 
+code {
+    background-color: #f0f0f0;
+    padding: 3px;
+}
+
 .pq-code-container {
     margin-top: 40px;
 }
