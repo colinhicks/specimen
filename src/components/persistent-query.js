@@ -33,8 +33,8 @@ export function build_data(config, styles, computed) {
   const { name, source_partitions, query_text, index, style: pq_style } = config;
   const { select, into, where, partition_by } = config;
 
-  const { pq_width, pq_height, pq_container_fill, pq_container_opacity,
-          pq_margin_top, pq_bracket_len
+  const { pq_width, pq_height, pq_container_fill,
+          pq_container_opacity, pq_margin_top
         } = styles;
   const { pq_label_margin_left, pq_label_margin_bottom } = styles;
   const { pq_metadata_offset_top, pq_metadata_margin_top } = styles;
@@ -48,7 +48,6 @@ export function build_data(config, styles, computed) {
   const left_x = midpoint_x - (pq_width / 2);
   const right_x = midpoint_x + (pq_width / 2);
   const line_bottom_y = top_y_slide - 5;
-  const b_len = pq_bracket_len;
 
   const metadata_top_y = box_bottom_y + pq_metadata_offset_top;
   const source_partitions_data = build_source_partitions_data(source_partitions, styles, {
@@ -89,32 +88,6 @@ export function build_data(config, styles, computed) {
         fill: pq_container_fill,
         opacity: pq_container_opacity
       },
-      brackets: {
-        tl: {
-          x: left_x + b_len,
-          y: absolute_top_y,
-          h: -b_len,
-          v: b_len
-        },
-        tr: {
-          x: right_x - b_len,
-          y: absolute_top_y,
-          h: b_len,
-          v: b_len
-        },
-        bl: {
-          x: left_x,
-          y: box_bottom_y - b_len,
-          v: b_len,
-          h: b_len
-        },
-        br: {
-          x: right_x,
-          y: box_bottom_y - b_len,
-          v: b_len,
-          h: -b_len
-        }
-      },
       style: pq_style || {},
       top_component: index == 0
     },
@@ -149,8 +122,7 @@ export function build_data(config, styles, computed) {
 
 export function render(data) {
   const { id, name, vars, rendering, children } = data;
-  const { line, label, brackets, container } = rendering;
-  const { tl, tr, bl, br } = brackets;
+  const { line, label, container } = rendering;
   const { stream_time, source_partitions } = children;
 
   const g = create_svg_el("g");
@@ -173,22 +145,6 @@ export function render(data) {
   d_container.setAttributeNS(null, "fill", container.fill);
   d_container.setAttributeNS(null, "opacity", container.opacity);
 
-  const d_tl = create_svg_el("path");
-  d_tl.setAttributeNS(null, "d", `M ${tl.x},${tl.y} h ${tl.h} v ${tl.v}`);
-  d_tl.classList.add("pq");
-
-  const d_tr = create_svg_el("path");
-  d_tr.setAttributeNS(null, "d", `M ${tr.x},${tr.y} h ${tr.h} v ${tr.v}`);
-  d_tr.classList.add("pq");
-
-  const d_bl = create_svg_el("path");
-  d_bl.setAttributeNS(null, "d", `M ${bl.x},${bl.y} v ${bl.v} h ${bl.h}`);
-  d_bl.classList.add("pq");
-
-  const d_br = create_svg_el("path");
-  d_br.setAttributeNS(null, "d", `M ${br.x},${br.y} v ${br.v} h ${br.h}`);
-  d_br.classList.add("pq");
-
   const d_label = create_svg_el("text");
   d_label.setAttributeNS(null, "x", label.x);
   d_label.setAttributeNS(null, "y", label.y);
@@ -203,10 +159,6 @@ export function render(data) {
   }
 
   g.appendChild(d_container);
-  // g.appendChild(d_tl);
-  // g.appendChild(d_tr);
-  // g.appendChild(d_bl);
-  // g.appendChild(d_br);
   g.appendChild(d_label);
   g.appendChild(d_stream_time);
   d_source_partitions.forEach(sp => g.appendChild(sp));

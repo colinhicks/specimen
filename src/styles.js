@@ -7,7 +7,6 @@ export const styles = {
   pq_width: 75,
   pq_height: 75,
   pq_margin_top: 50,
-  pq_bracket_len: 15,
   pq_container_fill: "#d7eff6",
   pq_container_opacity: 0.5,
   pq_label_margin_left: 0,
