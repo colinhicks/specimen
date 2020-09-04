@@ -20,6 +20,12 @@ Object.defineProperty(String.prototype, 'hashCode', {
   }
 });
 
+const flavors = [
+  "#0074A2",
+  "#F26135",
+  "#FFC40C"
+];
+
 function stream(container) {
   const styles = {
     svg_width: 750,
@@ -198,11 +204,6 @@ function transformation(container) {
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -296,11 +297,6 @@ function filtering(container) {
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -427,11 +423,6 @@ function compressed(container) {
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -529,11 +520,6 @@ function rekeying(container) {
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -662,11 +648,6 @@ function consumers(container) {
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
