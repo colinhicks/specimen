@@ -194,7 +194,14 @@ function transformation(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     style: {
       fill: function(before_row, after_row) {
@@ -285,7 +292,14 @@ function filtering(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     style: {
       fill: function(before_row, after_row) {
@@ -316,7 +330,14 @@ function filtering(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     where: function(context, row) {
       return row.value.amount > 41;
@@ -406,7 +427,14 @@ function compressed(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     where: function(context, row) {
       return row.value.amount > 41;
@@ -501,7 +529,14 @@ function rekeying(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     where: function(context, row) {
       return row.value.amount > 41;
@@ -535,7 +570,14 @@ function rekeying(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
       return before_row.value.country.hashCode();
@@ -627,7 +669,14 @@ function consumers(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     where: function(context, row) {
       return row.value.amount > 41;
@@ -661,7 +710,14 @@ function consumers(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
       return before_row.value.country.hashCode();
@@ -691,7 +747,14 @@ function consumers(container) {
       "  EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
       return (before_row.value.country + " ").hashCode();
