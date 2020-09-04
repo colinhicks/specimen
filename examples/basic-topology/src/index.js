@@ -40,7 +40,6 @@ function stream(container) {
 
     part_width: 200,
     part_height: 50,
-    part_bracket_len: 10,
     part_margin_bottom: 20,
     part_id_margin_left: -15,
     part_id_margin_top: 15,
@@ -82,7 +81,6 @@ function inserts(container) {
 
     part_width: 200,
     part_height: 50,
-    part_bracket_len: 10,
     part_margin_bottom: 20,
     part_id_margin_left: -15,
     part_id_margin_top: 15,
@@ -143,7 +141,6 @@ function transformation(container) {
 
     part_width: 200,
     part_height: 50,
-    part_bracket_len: 10,
     part_margin_bottom: 20,
     part_id_margin_left: -15,
     part_id_margin_top: 15,
@@ -236,7 +233,6 @@ function filtering(container) {
 
     part_width: 100,
     part_height: 25,
-    part_bracket_len: 5,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
     part_id_margin_top: 12,
@@ -358,7 +354,6 @@ function compressed(container) {
 
     part_width: 100,
     part_height: 25,
-    part_bracket_len: 5,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
     part_id_margin_top: 12,
@@ -455,7 +450,6 @@ function rekeying(container) {
 
     part_width: 100,
     part_height: 25,
-    part_bracket_len: 5,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
     part_id_margin_top: 12,
@@ -583,7 +577,6 @@ function consumers(container) {
 
     part_width: 100,
     part_height: 25,
-    part_bracket_len: 5,
     part_margin_bottom: 60,
     part_id_margin_left: -15,
     part_id_margin_top: 12,

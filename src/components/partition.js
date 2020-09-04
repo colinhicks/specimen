@@ -42,15 +42,13 @@ function find_top_y(consumer_markers_data, top_y) {
 export function build_data(config, styles, computed) {
   const { partition, rows } = config;
 
-  const { part_bracket_len, part_width, part_height,
+  const { part_width, part_height,
           part_id_margin_top, part_id_margin_left,
           part_container_fill
         } = styles;
   const { row_height, row_width, row_margin_left, row_offset_right } = styles;
 
   const { successors, top_y, midpoint_x } = computed;
-
-  const b_len = part_bracket_len;
 
   const left_x = midpoint_x - (part_width / 2);
   const right_x = midpoint_x + (part_width / 2);
@@ -112,8 +110,7 @@ export function build_data(config, styles, computed) {
 
 export function render(data, styles, computed) {
   const { id, vars, rendering, children } = data;
-  const { partition_label, container, brackets } = rendering;
-  const { tl, tr, bl, br } = brackets;
+  const { partition_label, container } = rendering;
   const { rows, consumer_markers } = children;
 
   const g = create_svg_el("g");
@@ -126,13 +123,13 @@ export function render(data, styles, computed) {
   text.classList.add("code");
   text.textContent = vars.partition_id;
 
-  const part_container = create_svg_el("rect");
-  part_container.setAttributeNS(null, "x", container.x);
-  part_container.setAttributeNS(null, "y", container.y);
-  part_container.setAttributeNS(null, "rx", container.rx);
-  part_container.setAttributeNS(null, "width", container.width);
-  part_container.setAttributeNS(null, "height", container.height);
-  part_container.setAttributeNS(null, "fill", container.fill);
+  const d_container = create_svg_el("rect");
+  d_container.setAttributeNS(null, "x", container.x);
+  d_container.setAttributeNS(null, "y", container.y);
+  d_container.setAttributeNS(null, "rx", container.rx);
+  d_container.setAttributeNS(null, "width", container.width);
+  d_container.setAttributeNS(null, "height", container.height);
+  d_container.setAttributeNS(null, "fill", container.fill);
 
   const rows_g = create_svg_el("g");
   rows_g.classList.add("rows");
@@ -147,7 +144,7 @@ export function render(data, styles, computed) {
   d_consumer_markers.forEach(marker => markers_g.appendChild(marker));
 
   g.appendChild(text);
-  g.appendChild(part_container);
+  g.appendChild(d_container);
   g.appendChild(rows_g);
   g.appendChild(markers_g);
 

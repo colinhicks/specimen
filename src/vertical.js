@@ -51,6 +51,8 @@ function stream_translate_y(data, height) {
 function persistent_query_translate_y(data, height) {
   data.rendering.line.y2 += height;
 
+  data.rendering.container.y += height;
+
   data.rendering.brackets.tl.y += height;
   data.rendering.brackets.tr.y += height;
   data.rendering.brackets.bl.y += height;

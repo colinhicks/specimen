@@ -33,7 +33,9 @@ export function build_data(config, styles, computed) {
   const { name, source_partitions, query_text, index, style: pq_style } = config;
   const { select, into, where, partition_by } = config;
 
-  const { pq_width, pq_height, pq_margin_top, pq_bracket_len } = styles;
+  const { pq_width, pq_height, pq_container_fill, pq_container_opacity,
+          pq_margin_top, pq_bracket_len
+        } = styles;
   const { pq_label_margin_left, pq_label_margin_bottom } = styles;
   const { pq_metadata_offset_top, pq_metadata_margin_top } = styles;
 
@@ -77,6 +79,15 @@ export function build_data(config, styles, computed) {
         name: name,
         x: left_x + pq_label_margin_left,
         y: absolute_top_y - pq_label_margin_bottom
+      },
+      container: {
+        x: left_x,
+        y: absolute_top_y,
+        rx: 10,
+        width: pq_width,
+        height: pq_height,
+        fill: pq_container_fill,
+        opacity: pq_container_opacity
       },
       brackets: {
         tl: {
@@ -138,7 +149,7 @@ export function build_data(config, styles, computed) {
 
 export function render(data) {
   const { id, name, vars, rendering, children } = data;
-  const { line, label, brackets } = rendering;
+  const { line, label, brackets, container } = rendering;
   const { tl, tr, bl, br } = brackets;
   const { stream_time, source_partitions } = children;
 
@@ -152,6 +163,15 @@ export function render(data) {
   d_line.setAttributeNS(null, "x2", line.x2);
   d_line.setAttributeNS(null, "y2", line.y2);
   d_line.classList.add("pq-connector");
+
+  const d_container = create_svg_el("rect");
+  d_container.setAttributeNS(null, "x", container.x);
+  d_container.setAttributeNS(null, "y", container.y);
+  d_container.setAttributeNS(null, "rx", container.rx);
+  d_container.setAttributeNS(null, "width", container.width);
+  d_container.setAttributeNS(null, "height", container.height);
+  d_container.setAttributeNS(null, "fill", container.fill);
+  d_container.setAttributeNS(null, "opacity", container.opacity);
 
   const d_tl = create_svg_el("path");
   d_tl.setAttributeNS(null, "d", `M ${tl.x},${tl.y} h ${tl.h} v ${tl.v}`);
@@ -182,10 +202,11 @@ export function render(data) {
     g.appendChild(d_line);
   }
 
-  g.appendChild(d_tl);
-  g.appendChild(d_tr);
-  g.appendChild(d_bl);
-  g.appendChild(d_br);
+  g.appendChild(d_container);
+  // g.appendChild(d_tl);
+  // g.appendChild(d_tr);
+  // g.appendChild(d_bl);
+  // g.appendChild(d_br);
   g.appendChild(d_label);
   g.appendChild(d_stream_time);
   d_source_partitions.forEach(sp => g.appendChild(sp));
