@@ -17,11 +17,15 @@ function adjust_rendering(action, data_fns, styles) {
   row_data.rendering.x = right_x;
 
   // New card for new row.
-  const card_config = { row_id: row_data.id, record: action.before.row.vars.record };
+  const card_config = {
+    row_id: row_data.id,
+    record: action.before.row.vars.record,
+    viewable: false
+  };
+
   row_data.children.row_card = rc.build_data(card_config, styles, {});
 
   pack(row_data);
-  action.after.row = by_id(row_data.id);
 }
 
 function draw_new_row(action, data_fns) {
@@ -242,6 +246,18 @@ export function anime_data(ctx, action_animation_seq, data_fns, lineage, styles)
     }
   };
 
+  const card_id = action.after.row.children.row_card.id;
+
+  const unhide_row_card = {
+    t: t_offset,
+    apply: function() {
+      c.toggle_row_card_visibility(data_fns, card_id, true);
+    },
+    undo: function() {
+      c.toggle_row_card_visibility(data_fns, card_id, false);
+    }
+  };
+
   const update_stream_time = {
     t: (t_offset + appear_ms + move_to_pq_center_ms + approach_pq_ms),
     apply: function() {
@@ -261,8 +277,6 @@ export function anime_data(ctx, action_animation_seq, data_fns, lineage, styles)
       c.update_pq_offsets(data_fns, action.processed_by, action.before.offsets);
     }
   };
-
-  const card_id = action.after.row.children.row_card.id;
   
   const update_row_card = {
     t: (t_offset + appear_ms + move_to_pq_center_ms + approach_pq_ms),
@@ -280,6 +294,7 @@ export function anime_data(ctx, action_animation_seq, data_fns, lineage, styles)
       consumer_marker_movement
     ],
     callbacks: [
+      unhide_row_card,
       update_stream_time,
       update_pq_offsets,
       update_row_card

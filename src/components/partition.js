@@ -59,6 +59,8 @@ export function build_data(config, styles, computed) {
   let rows_data = [];
 
   rows.forEach(row => {
+    row.card_viewable = true;
+
     rows_data.push(r.build_data(row, styles, {
       left_x: row_x,
       top_y: top_y,

@@ -1,29 +1,34 @@
 import { uuidv4, select_keys, create_svg_el } from './../util';
 
 export function build_data(config, styles, computed) {
-  const { row_id, record } = config;
+  const { row_id, record, viewable } = config;
 
   return {
     kind: "row_card",
     id: uuidv4(),
     vars: {
       row_id,
-      record
+      record,
+      viewable
     }
   };
 }
 
-function show_record_contents(event, card_id) {
-  const card = document.getElementById(card_id);
+function show_record_contents(card_id) {
+  return function(event) {
+    const card = document.getElementById(card_id);
 
-  card.style.display = "block";
-  card.style.left = event.pageX + 10 + "px";
-  card.style.top = event.pageY + 10 + "px";
+    card.style.display = "block";
+    card.style.left = event.pageX + 10 + "px";
+    card.style.top = event.pageY + 10 + "px";
+  };
 }
 
 function hide_record_contents(card_id) {
-  const card = document.getElementById(card_id);
-  card.style.display = "none";
+  return function(event) {
+    const card = document.getElementById(card_id);
+    card.style.display = "none";
+  }
 }
 
 function card_text(record ) {
@@ -34,6 +39,7 @@ function card_text(record ) {
 
 export function render(data) {
   const { id, vars, rendering } = data;
+  const { viewable } = vars;
 
   const card = document.createElementNS("http://www.w3.org/1999/xhtml", "div");
   card.id = id;
@@ -49,12 +55,9 @@ export function render(data) {
 
   const row = document.getElementById(vars.row_id);
 
-  row.onmousemove = function(event) {
-    show_record_contents(event, id);
-  };
-
-  row.onmouseout = function(event) {
-    hide_record_contents(id);
+  if (viewable) {
+    row.onmousemove = show_record_contents(id);
+    row.onmouseout = hide_record_contents(id);
   }
 
   return card;
@@ -65,4 +68,19 @@ export function update_card_text(row_card, record) {
   const el = document.getElementById(id);
 
   el.textContent = card_text(record);
+}
+
+export function toggle_visibility(row_card) {
+  const { id, vars } = row_card;
+  const { row_id, viewable } = vars;
+
+  const row = document.getElementById(vars.row_id);
+
+  if (viewable) {
+    row.onmousemove = show_record_contents(id);
+    row.onmouseout = hide_record_contents(id);
+  } else {
+    row.removeEventListener('mousemove', show_record_contents(id));
+    row.removeEventListener('mouseout', hide_record_contents(id));
+  }
 }

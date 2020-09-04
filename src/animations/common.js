@@ -2,6 +2,16 @@ import * as st from "./../components/stream-time";
 import * as sp from "./../components/source-partition";
 import * as rc from "./../components/row-card";
 
+export function toggle_row_card_visibility(data_fns, card_id, viewable) {
+  const { by_id, pack } = data_fns;
+
+  const card_data = by_id(card_id);
+  card_data.vars.viewable = viewable;
+  rc.toggle_visibility(card_data);
+
+  pack(card_data);
+}
+
 export function update_stream_time_text(data_fns, pq_name, row) {
   const { by_name } = data_fns;
   const pq_data = by_name(pq_name);
