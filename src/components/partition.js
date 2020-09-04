@@ -92,32 +92,6 @@ export function build_data(config, styles, computed) {
         height: part_height,
         fill: part_container_fill
       },
-      brackets: {
-        tl: {
-          x: left_x + b_len,
-          y: top_y,
-          h: -b_len,
-          v: b_len
-        },
-        tr: {
-          x: right_x - b_len,
-          y: top_y,
-          h: b_len,
-          v: b_len
-        },
-        bl: {
-          x: left_x,
-          y: bottom_y - b_len,
-          v: b_len,
-          h: b_len
-        },
-        br: {
-          x: right_x,
-          y: bottom_y - b_len,
-          v: b_len,
-          h: -b_len
-        }
-      }
     },
     vars: {
       partition_id: partition,
