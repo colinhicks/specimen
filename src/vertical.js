@@ -25,6 +25,7 @@ function stream_translate_y(data, height) {
 
   data.children.partitions = data.children.partitions.map(partition => {
     partition.rendering.partition_label.y += height;
+    partition.rendering.container.y += height;
 
     partition.rendering.brackets.tl.y += height;
     partition.rendering.brackets.tr.y += height;

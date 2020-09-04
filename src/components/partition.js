@@ -81,6 +81,13 @@ export function build_data(config, styles, computed) {
         x: left_x + part_id_margin_left,
         y: top_y + part_id_margin_top
       },
+      container: {
+        x: left_x,
+        y: top_y,
+        rx: 10,
+        width: part_width,
+        height: part_height,
+      },
       brackets: {
         tl: {
           x: left_x + b_len,
@@ -127,7 +134,7 @@ export function build_data(config, styles, computed) {
 
 export function render(data, styles, computed) {
   const { id, vars, rendering, children } = data;
-  const { partition_label, brackets } = rendering;
+  const { partition_label, container, brackets } = rendering;
   const { tl, tr, bl, br } = brackets;
   const { rows, consumer_markers } = children;
 
@@ -140,6 +147,14 @@ export function render(data, styles, computed) {
   text.setAttributeNS(null, "y", partition_label.y);
   text.classList.add("code");
   text.textContent = vars.partition_id;
+
+  const part_container = create_svg_el("rect");
+  part_container.setAttributeNS(null, "x", container.x);
+  part_container.setAttributeNS(null, "y", container.y);
+  part_container.setAttributeNS(null, "rx", container.rx);
+  part_container.setAttributeNS(null, "width", container.width);
+  part_container.setAttributeNS(null, "height", container.height);
+  part_container.setAttributeNS(null, "fill", "#f5f5f5");
 
   const d_tl = create_svg_el("path");
   d_tl.setAttributeNS(null, "d", `M ${tl.x},${tl.y} h ${tl.h} v ${tl.v}`);
@@ -170,10 +185,11 @@ export function render(data, styles, computed) {
   d_consumer_markers.forEach(marker => markers_g.appendChild(marker));
 
   g.appendChild(text);
-  g.appendChild(d_tl);
-  g.appendChild(d_tr);
-  g.appendChild(d_bl);
-  g.appendChild(d_br);
+  g.appendChild(part_container);
+  // g.appendChild(d_tl);
+  // g.appendChild(d_tr);
+  // g.appendChild(d_bl);
+  // g.appendChild(d_br);
   g.appendChild(rows_g);
   g.appendChild(markers_g);
 

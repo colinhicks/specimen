@@ -25,7 +25,7 @@ export const styles = {
   part_margin_bottom: 30,
   part_bracket_len: 7,
   part_id_margin_left: -15,
-  part_id_margin_top: 8,
+  part_id_margin_top: 15,
 
   row_width: 10,
   row_height: 10,
