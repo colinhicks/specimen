@@ -8,18 +8,6 @@ hljs.registerLanguage('sql', ksql);
 hljs.registerLanguage('javascript', hljs_js);
 hljs.initHighlightingOnLoad();
 
-Object.defineProperty(String.prototype, 'hashCode', {
-  value: function() {
-    var hash = 0, i, chr;
-    for (i = 0; i < this.length; i++) {
-      chr   = this.charCodeAt(i);
-      hash  = ((hash << 5) - hash) + chr;
-      hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-  }
-});
-
 const flavors = [
   "#0074A2",
   "#F26135",
@@ -580,7 +568,7 @@ function rekeying(container) {
       return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return before_row.value.country.hashCode();
+      return before_row.value.country;
     }
   });
 
@@ -720,7 +708,7 @@ function consumers(container) {
       return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return before_row.value.country.hashCode();
+      return before_row.value.country;
     }
   });
 
@@ -757,7 +745,7 @@ function consumers(container) {
       return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return (before_row.value.country + " ").hashCode();
+      return (before_row.value.country + " ");
     }
   });
 

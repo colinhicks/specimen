@@ -1,6 +1,18 @@
 import { uuidv4, cycle_array } from './util';
 import cloneDeep from "lodash/cloneDeep";
 
+Object.defineProperty(String.prototype, 'hashCode', {
+  value: function() {
+    var hash = 0, i, chr;
+    for (i = 0; i < this.length; i++) {
+      chr   = this.charCodeAt(i);
+      hash  = ((hash << 5) - hash) + chr;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  }
+});
+
 function choose_lowest_timestamp(streams, offsets) {
   let choices = []
 
@@ -86,11 +98,21 @@ function set_after_stream(after_row, into) {
   after_row.vars.record.stream = into;
 }
 
+function make_partitioner(key) {
+  if (typeof key === 'string' || key instanceof String) {
+    return key.hashCode();
+  } else {
+    return key;
+  }
+}
+
 function repartition(context, before_row, after_row, partition_by) {
   if (partition_by) {
     const key = partition_by(context, before_row.vars.record, after_row.vars.record);
     after_row.vars.record.key = key;
-    after_row.vars.record.partition = key % context.partitions;
+
+    const partitioner = make_partitioner(key);
+    after_row.vars.record.partition = partitioner % context.partitions;
   }
 }
 
