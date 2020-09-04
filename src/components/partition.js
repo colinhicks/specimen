@@ -42,7 +42,10 @@ function find_top_y(consumer_markers_data, top_y) {
 export function build_data(config, styles, computed) {
   const { partition, rows } = config;
 
-  const { part_bracket_len, part_width, part_height, part_id_margin_top, part_id_margin_left } = styles;
+  const { part_bracket_len, part_width, part_height,
+          part_id_margin_top, part_id_margin_left,
+          part_container_fill
+        } = styles;
   const { row_height, row_width, row_margin_left, row_offset_right } = styles;
 
   const { successors, top_y, midpoint_x } = computed;
@@ -87,6 +90,7 @@ export function build_data(config, styles, computed) {
         rx: 10,
         width: part_width,
         height: part_height,
+        fill: part_container_fill
       },
       brackets: {
         tl: {
@@ -154,23 +158,7 @@ export function render(data, styles, computed) {
   part_container.setAttributeNS(null, "rx", container.rx);
   part_container.setAttributeNS(null, "width", container.width);
   part_container.setAttributeNS(null, "height", container.height);
-  part_container.setAttributeNS(null, "fill", "#f5f5f5");
-
-  const d_tl = create_svg_el("path");
-  d_tl.setAttributeNS(null, "d", `M ${tl.x},${tl.y} h ${tl.h} v ${tl.v}`);
-  d_tl.classList.add("partition");
-
-  const d_tr = create_svg_el("path");
-  d_tr.setAttributeNS(null, "d", `M ${tr.x},${tr.y} h ${tr.h} v ${tr.v}`);
-  d_tr.classList.add("partition");
-
-  const d_bl = create_svg_el("path");
-  d_bl.setAttributeNS(null, "d", `M ${bl.x},${bl.y} v ${bl.v} h ${bl.h}`);
-  d_bl.classList.add("partition");
-
-  const d_br = create_svg_el("path");
-  d_br.setAttributeNS(null, "d", `M ${br.x},${br.y} v ${br.v} h ${br.h}`);
-  d_br.classList.add("partition");
+  part_container.setAttributeNS(null, "fill", container.fill);
 
   const rows_g = create_svg_el("g");
   rows_g.classList.add("rows");
@@ -186,10 +174,6 @@ export function render(data, styles, computed) {
 
   g.appendChild(text);
   g.appendChild(part_container);
-  // g.appendChild(d_tl);
-  // g.appendChild(d_tr);
-  // g.appendChild(d_bl);
-  // g.appendChild(d_br);
   g.appendChild(rows_g);
   g.appendChild(markers_g);
 

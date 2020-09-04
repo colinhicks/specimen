@@ -24,6 +24,7 @@ export const styles = {
   part_height: 45,
   part_margin_bottom: 30,
   part_bracket_len: 7,
+  part_container_fill: "#f5f5f5",
   part_id_margin_left: -15,
   part_id_margin_top: 15,
 
