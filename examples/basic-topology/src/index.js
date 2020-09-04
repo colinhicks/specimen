@@ -231,7 +231,7 @@ function filtering(container) {
     part_height: 25,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
-    part_id_margin_top: 12,
+    part_id_margin_top: 3,
 
     row_width: 10,
     row_height: 10,
@@ -351,7 +351,7 @@ function compressed(container) {
     part_height: 25,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
-    part_id_margin_top: 12,
+    part_id_margin_top: 3,
 
     row_width: 10,
     row_height: 10,
@@ -446,7 +446,7 @@ function rekeying(container) {
     part_height: 25,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
-    part_id_margin_top: 12,
+    part_id_margin_top: 3,
 
     row_width: 10,
     row_height: 10,
@@ -572,7 +572,7 @@ function consumers(container) {
     part_height: 25,
     part_margin_bottom: 60,
     part_id_margin_left: -15,
-    part_id_margin_top: 12,
+    part_id_margin_top: 3,
 
     row_width: 10,
     row_height: 10,
