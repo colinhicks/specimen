@@ -31,7 +31,7 @@ function build_source_partitions_data(arr, styles, computed) {
 
 export function build_data(config, styles, computed) {
   const { name, source_partitions, query_text, index, style: pq_style } = config;
-  const { select, into, where, partition_by } = config;
+  const { select, aggregate, into, where, partition_by } = config;
 
   const { pq_width, pq_height, pq_container_fill,
           pq_container_opacity, pq_margin_top
@@ -94,10 +94,11 @@ export function build_data(config, styles, computed) {
     vars: {
       query_text: query_text,
       query_parts: {
-        select: select,
-        into: into,
-        where: where,
-        partition_by: partition_by
+        select,
+        aggregate,
+        into,
+        where,
+        partition_by
       }
     },
     children: {
