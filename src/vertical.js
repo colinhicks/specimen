@@ -25,11 +25,7 @@ function stream_translate_y(data, height) {
 
   data.children.partitions = data.children.partitions.map(partition => {
     partition.rendering.partition_label.y += height;
-
-    partition.rendering.brackets.tl.y += height;
-    partition.rendering.brackets.tr.y += height;
-    partition.rendering.brackets.bl.y += height;
-    partition.rendering.brackets.br.y += height;
+    partition.rendering.container.y += height;
 
     partition.refs.midpoint_y += height;
 
@@ -55,11 +51,7 @@ function stream_translate_y(data, height) {
 function persistent_query_translate_y(data, height) {
   data.rendering.line.y2 += height;
 
-  data.rendering.brackets.tl.y += height;
-  data.rendering.brackets.tr.y += height;
-  data.rendering.brackets.bl.y += height;
-  data.rendering.brackets.br.y += height;
-
+  data.rendering.container.y += height;
   data.rendering.label.y += height;
 
   data.refs.midpoint_y += height;

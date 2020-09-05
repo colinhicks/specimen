@@ -2,7 +2,7 @@ import * as rc from './row-card';
 import { uuidv4, select_keys, create_svg_el } from './../util';
 
 export function build_data(config, styles, computed) {
-  const { record, source_id, style: row_style } = config;
+  const { record, source_id, card_viewable, style: row_style } = config;
 
   const { row_width, row_height } = styles;
   const { part_height } = styles;
@@ -11,7 +11,12 @@ export function build_data(config, styles, computed) {
   const id = uuidv4();
   const this_top_y = top_y + (part_height / 2) - (row_height / 2);
 
-  const row_card_data = rc.build_data({ row_id: id, record: record }, styles, {
+  const card_config = {
+    row_id: id,
+    record: record,
+    viewable: card_viewable
+  };
+  const row_card_data = rc.build_data(card_config, styles, {
     x: left_x,
     y: this_top_y
   });
@@ -49,16 +54,15 @@ export function render(data) {
   // That has to happen last to correct for its z-index.
   const { id, vars, rendering } = data;
 
-  const rect = create_svg_el("rect");
-  rect.id = id;
-  rect.setAttributeNS(null, "x", rendering.x);
-  rect.setAttributeNS(null, "y", rendering.y);
-  rect.setAttributeNS(null, "width", rendering.width);
-  rect.setAttributeNS(null, "height", rendering.height);
-  rect.setAttributeNS(null, "fill", rendering.fill);
-  rect.setAttributeNS(null, "data-stream", vars.record.stream);
-  rect.setAttributeNS(null, "data-partition", vars.record.partition);
-  rect.setAttributeNS(null, "data-offset", vars.record.offset);
+  const circle = create_svg_el("circle");
+  circle.id = id;
+  circle.setAttributeNS(null, "cx", (rendering.x + (rendering.width / 2)));
+  circle.setAttributeNS(null, "cy", (rendering.y + (rendering.height / 2)));
+  circle.setAttributeNS(null, "r", (rendering.width / 2));
+  circle.setAttributeNS(null, "fill", rendering.fill);
+  circle.setAttributeNS(null, "data-stream", vars.record.stream);
+  circle.setAttributeNS(null, "data-partition", vars.record.partition);
+  circle.setAttributeNS(null, "data-offset", vars.record.offset);
 
-  return rect;
+  return circle;
 }

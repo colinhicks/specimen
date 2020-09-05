@@ -159,6 +159,18 @@ export function anime_data(ctx, action_animation_seq, data_fns, lineage, styles)
     }
   };
 
+  const card_id = action.after.row.children.row_card.id;
+
+  const unhide_row_card = {
+    t: t_offset,
+    apply: function() {
+      c.toggle_row_card_visibility(data_fns, card_id, true);
+    },
+    undo: function() {
+      c.toggle_row_card_visibility(data_fns, card_id, false);
+    }
+  };
+
   const update_stream_time = {
     t: (t_offset + appear_ms + move_to_pq_center_ms + approach_pq_ms),
     apply: function() {
@@ -185,6 +197,7 @@ export function anime_data(ctx, action_animation_seq, data_fns, lineage, styles)
       consumer_marker_movement
     ],
     callbacks: [
+      unhide_row_card,
       update_stream_time,
       update_pq_offsets
     ]

@@ -8,17 +8,11 @@ hljs.registerLanguage('sql', ksql);
 hljs.registerLanguage('javascript', hljs_js);
 hljs.initHighlightingOnLoad();
 
-Object.defineProperty(String.prototype, 'hashCode', {
-  value: function() {
-    var hash = 0, i, chr;
-    for (i = 0; i < this.length; i++) {
-      chr   = this.charCodeAt(i);
-      hash  = ((hash << 5) - hash) + chr;
-      hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-  }
-});
+const flavors = [
+  "#0074A2",
+  "#F26135",
+  "#FFC40C"
+];
 
 function stream(container) {
   const styles = {
@@ -28,16 +22,14 @@ function stream(container) {
     pq_width: 150,
     pq_height: 150,
     pq_margin_top: 50,
-    pq_bracket_len: 25,
     pq_label_margin_left: 0,
     pq_label_margin_bottom: 10,
 
     part_width: 200,
     part_height: 50,
-    part_bracket_len: 10,
     part_margin_bottom: 20,
     part_id_margin_left: -15,
-    part_id_margin_top: 8,
+    part_id_margin_top: 15,
 
     row_width: 15,
     row_height: 15,
@@ -70,16 +62,14 @@ function inserts(container) {
     pq_width: 150,
     pq_height: 150,
     pq_margin_top: 50,
-    pq_bracket_len: 25,
     pq_label_margin_left: 0,
     pq_label_margin_bottom: 10,
 
     part_width: 200,
     part_height: 50,
-    part_bracket_len: 10,
     part_margin_bottom: 20,
     part_id_margin_left: -15,
-    part_id_margin_top: 8,
+    part_id_margin_top: 15,
 
     row_width: 15,
     row_height: 15,
@@ -131,16 +121,14 @@ function transformation(container) {
     pq_width: 150,
     pq_height: 150,
     pq_margin_top: 50,
-    pq_bracket_len: 25,
     pq_label_margin_left: 0,
     pq_label_margin_bottom: 10,
 
     part_width: 200,
     part_height: 50,
-    part_bracket_len: 10,
     part_margin_bottom: 20,
     part_id_margin_left: -15,
-    part_id_margin_top: 8,
+    part_id_margin_top: 15,
 
     row_width: 15,
     row_height: 15,
@@ -194,15 +182,17 @@ function transformation(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -229,16 +219,14 @@ function filtering(container) {
     pq_width: 75,
     pq_height: 75,
     pq_margin_top: 50,
-    pq_bracket_len: 15,
     pq_label_margin_left: 0,
     pq_label_margin_bottom: 10,
 
     part_width: 100,
     part_height: 25,
-    part_bracket_len: 5,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
-    part_id_margin_top: 5,
+    part_id_margin_top: 3,
 
     row_width: 10,
     row_height: 10,
@@ -292,15 +280,17 @@ function filtering(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -328,7 +318,14 @@ function filtering(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     where: function(context, row) {
       return row.value.amount > 41;
@@ -356,16 +353,14 @@ function compressed(container) {
     pq_width: 75,
     pq_height: 75,
     pq_margin_top: 50,
-    pq_bracket_len: 15,
     pq_label_margin_left: 0,
     pq_label_margin_bottom: 10,
 
     part_width: 100,
     part_height: 25,
-    part_bracket_len: 5,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
-    part_id_margin_top: 5,
+    part_id_margin_top: 3,
 
     row_width: 10,
     row_height: 10,
@@ -420,18 +415,20 @@ function compressed(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     where: function(context, row) {
       return row.value.amount > 41;
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -458,16 +455,14 @@ function rekeying(container) {
     pq_width: 75,
     pq_height: 75,
     pq_margin_top: 50,
-    pq_bracket_len: 15,
     pq_label_margin_left: 0,
     pq_label_margin_bottom: 10,
 
     part_width: 100,
     part_height: 25,
-    part_bracket_len: 5,
     part_margin_bottom: 30,
     part_id_margin_left: -15,
-    part_id_margin_top: 5,
+    part_id_margin_top: 3,
 
     row_width: 10,
     row_height: 10,
@@ -522,18 +517,20 @@ function rekeying(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     where: function(context, row) {
       return row.value.amount > 41;
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -561,10 +558,17 @@ function rekeying(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return before_row.value.country.hashCode();
+      return before_row.value.country;
     }
   });
 
@@ -589,7 +593,6 @@ function consumers(container) {
     pq_width: 75,
     pq_height: 75,
     pq_margin_top: 50,
-    pq_bracket_len: 15,
     pq_label_margin_left: 0,
     pq_label_margin_bottom: 10,
 
@@ -597,10 +600,9 @@ function consumers(container) {
 
     part_width: 100,
     part_height: 25,
-    part_bracket_len: 5,
     part_margin_bottom: 60,
     part_id_margin_left: -15,
-    part_id_margin_top: 5,
+    part_id_margin_top: 3,
 
     row_width: 10,
     row_height: 10,
@@ -655,18 +657,20 @@ function consumers(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     where: function(context, row) {
       return row.value.amount > 41;
     },
     style: {
       fill: function(before_row, after_row) {
-        const flavors = [
-          "#38CCED",
-          "#0074A2",
-          "#829494"
-        ];
         return flavors[before_row.value.country.hashCode() % flavors.length];
       }
     }
@@ -694,10 +698,17 @@ function consumers(container) {
       "    EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return before_row.value.country.hashCode();
+      return before_row.value.country;
     }
   });
 
@@ -724,10 +735,17 @@ function consumers(container) {
       "  EMIT CHANGES;"
     ],
     select: function(row) {
-      return row;
+      const { value } = row;
+
+      const v = {
+        amount: value.amount,
+        country: value.country.toUpperCase()
+      }
+
+      return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return (before_row.value.country + " ").hashCode();
+      return (before_row.value.country + " ");
     }
   });
 

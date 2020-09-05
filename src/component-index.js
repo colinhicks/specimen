@@ -1,22 +1,24 @@
 import cloneDeep from "lodash/cloneDeep";
 
 export function pack(component, ids = {}) {
-  if (component.children) {
-    Object.entries(component.children).forEach(([ name, sub ]) => {
+  const target = cloneDeep(component);
+
+  if (target.children) {
+    Object.entries(target.children).forEach(([ name, sub ]) => {
       
       if (Array.isArray(sub)) {
         sub.forEach((s, i) => {
           ids = pack(s, ids);
-          component.children[name][i] = s.id;
+          target.children[name][i] = s.id;
         });
       } else {
         ids = pack(sub, ids);
-        component.children[name] = sub.id;
+        target.children[name] = sub.id;
       }
     });
   }
 
-  ids[component.id] = component;
+  ids[target.id] = target;
   return ids;
 }
 
