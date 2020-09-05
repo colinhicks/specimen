@@ -128,7 +128,7 @@ function initialize_state(pqs) {
     const { name, vars } = pq;
     const { aggregate } = vars.query_parts;
 
-    if (aggregate.init) {
+    if (aggregate && ("init" in aggregate)) {
       all[name] = aggregate.init();
     } else {
       all[name] = undefined;

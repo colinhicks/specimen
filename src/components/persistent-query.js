@@ -38,6 +38,7 @@ export function build_data(config, styles, computed) {
         } = styles;
   const { pq_label_margin_left, pq_label_margin_bottom } = styles;
   const { pq_metadata_offset_top, pq_metadata_margin_top } = styles;
+  const { st_margin_top, st_margin_left } = styles;
 
   const { predecessors, successors, top_y, midpoint_x } = computed;
 
@@ -58,8 +59,8 @@ export function build_data(config, styles, computed) {
 
   top_y_slide = source_partitions_data.slice(-1)[0].refs.bottom_y + pq_metadata_offset_top;
   const stream_time_data = st.build_data({}, styles, {
-    left_x: left_x,
-    top_y: top_y_slide,
+    left_x: left_x + st_margin_left,
+    top_y: absolute_top_y + st_margin_top,
     bottom_margin: pq_metadata_margin_top
   });
 
@@ -111,7 +112,7 @@ export function build_data(config, styles, computed) {
     },
     refs: {
       top_y: absolute_top_y,
-      bottom_y: stream_time_data.refs.bottom_y,
+      bottom_y: top_y_slide,
       box_bottom_y: box_bottom_y,
       midpoint_y: box_bottom_y - (pq_height / 2),
       left_x: left_x,
@@ -162,6 +163,7 @@ export function render(data) {
   g.appendChild(d_container);
   g.appendChild(d_label);
   g.appendChild(d_stream_time);
+
   d_source_partitions.forEach(sp => g.appendChild(sp));
 
   return g;

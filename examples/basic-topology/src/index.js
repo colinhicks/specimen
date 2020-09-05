@@ -739,11 +739,11 @@ function aggregation(container) {
   s.render();
 }
 
-// stream("#stream");
-// inserts("#inserts");
-// transformation("#transformation");
-// filtering("#filtering");
-// compressed("#compressed");
-// rekeying("#rekeying");
-// consumers("#multi-consumer");
+stream("#stream");
+inserts("#inserts");
+transformation("#transformation");
+filtering("#filtering");
+compressed("#compressed");
+rekeying("#rekeying");
+consumers("#multi-consumer");
 aggregation("#aggregation");
