@@ -80,7 +80,7 @@ export function toggle_visibility(row_card) {
     row.onmousemove = show_record_contents(id);
     row.onmouseout = hide_record_contents(id);
   } else {
-    row.removeEventListener('mousemove', show_record_contents(id));
-    row.removeEventListener('mouseout', hide_record_contents(id));
+    row.onmousemove = () => {};
+    row.onmouseout = () => {};
   }
 }
