@@ -1,7 +1,9 @@
 import * as r from "./../components/row";
 import * as rc from "./../components/row-card";
+import * as mv from "./../components/materialized-view";
 import * as c from "./common";
 import { relative_add, relative_sub, ms_for_translate } from "./../util";
+import cloneDeep from "lodash/cloneDeep";
 
 function adjust_rendering(action, data_fns, styles) {
   const { by_id, by_name, pack } = data_fns;
@@ -153,7 +155,7 @@ export function animation_seq(action, data_fns, styles) {
 export function anime_data(ctx, action_animation_seq, data_fns, lineage, styles) {
   const { t, history } = ctx;
   const { action, animations } = action_animation_seq;
-  const { by_name, by_id } = data_fns;
+  const { by_name, by_id, pack } = data_fns;
   const { ms_px, d_row_appear_ms } = styles;
 
   const pq_t = (t[action.processed_by] || 0);
@@ -288,16 +290,51 @@ export function anime_data(ctx, action_animation_seq, data_fns, lineage, styles)
     }
   };
 
+  const commands = [
+    row_movement,
+    consumer_marker_movement
+  ];
+
+  const callbacks = [
+    unhide_row_card,
+    update_stream_time,
+    update_pq_offsets,
+    update_row_card,
+  ];
+
+  const pq_data = by_name(action.processed_by);
+
+  if (pq_data.vars.stateful) {
+    const mv_id = pq_data.children.materialized_view.id;
+    const key = action.after.row.vars.record.key;
+
+    // Need to capture the previous value in the apply
+    // callback to get the right undo value.
+    let previous_row = undefined;
+
+    const update_materialized_view = {
+      t: (t_offset + appear_ms + move_to_pq_center_ms + approach_pq_ms),
+      apply: function() {
+        const mv_data = by_id(mv_id);
+        previous_row = cloneDeep(mv_data.vars.row_index[key]);
+
+        // Need to unpack this in the callback since it may have changed.
+        mv.update_table(mv_data, action.after.row);
+        pack(mv_data);
+      },
+      undo: function() {
+        // Same here, unpack since it may have changed.
+        const mv_data = by_id(mv_id);
+        mv.undo_row(mv_data, key, previous_row);
+        pack(mv_data);
+      }
+    };
+
+    callbacks.push(update_materialized_view);
+  }
+
   return {
-    commands: [
-      row_movement,
-      consumer_marker_movement
-    ],
-    callbacks: [
-      unhide_row_card,
-      update_stream_time,
-      update_pq_offsets,
-      update_row_card
-    ]
+    commands,
+    callbacks
   };
 }

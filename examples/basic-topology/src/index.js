@@ -28,7 +28,6 @@ const input_partitions = [
     { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
     { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
     { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-
   ],
   [
     { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
@@ -652,9 +651,9 @@ function consumers(container) {
 function aggregation(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 325,
+    svg_height: 450,
 
-    pq_width: 150,
+    pq_width: 200,
     pq_height: 150,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -689,7 +688,7 @@ function aggregation(container) {
     query_text: [
       "CREATE STREAM total_orders AS",
       "    SELECT buyer,",
-      "           SUM(amount)",
+      "           SUM(amount) AS total",
       "    FROM orders",
       "    GROUP BY buyer",
       "    EMIT CHANGES;"
@@ -717,9 +716,22 @@ function aggregation(container) {
         return {
           [key] : after
         };
-      }
+      },
+      columns: [
+        {
+          name: "buyer",
+          width: 11,
+          lookup: (row) => row.key
+        },
+        {
+          name: "total",
+          width: 11,
+          lookup: (row) => row.value.count
+        }
+      ]
     },
     style: {
+      materialized_view_height: 250,
       fill: function(before_row, after_row) {
         return "#D8365D";
       }
