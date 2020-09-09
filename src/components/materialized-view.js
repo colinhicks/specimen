@@ -4,13 +4,12 @@ export function build_data(config, styles, computed) {
   const { aggregate, pq_style } = config;
   const { columns } = aggregate;
   const { materialized_view_height } = pq_style;
-  const { mv_container_fill, mv_row_height } = styles;
+  const { mv_container_fill, mv_row_height, mv_margin_top } = styles;
   const { top_y, left_x, width } = computed;
 
   const bottom_y = top_y + materialized_view_height;
-  // Three rows for dashes, headers, dashes, and another
-  // for the next row.
-  const next_y = mv_row_height * 4;
+  // Three rows for upper dashes, headers, lower dashes.
+  const next_y = mv_margin_top + (mv_row_height * 3);
   
   return {
     kind: "materialized_view",
@@ -24,7 +23,9 @@ export function build_data(config, styles, computed) {
         height: materialized_view_height,
         fill: mv_container_fill
       },
-      mv_row_height
+      mv_margin_top,
+      mv_row_height,
+      mv_margin_top
     },
     vars: {
       columns,
@@ -76,7 +77,7 @@ function make_row(columns, table_row) {
 export function render(data) {
   const { id, vars, rendering } = data;
   const { columns } = vars;
-  const { container, mv_row_height } = rendering;
+  const { container, mv_row_height, mv_margin_top } = rendering;
   
   const g = create_svg_el("g");
   g.id = id;
@@ -91,20 +92,20 @@ export function render(data) {
 
   const d_dashes_upper = create_svg_el("text");
   d_dashes_upper.setAttributeNS(null, "x", container.x);
-  d_dashes_upper.setAttributeNS(null, "y", container.y + mv_row_height);
+  d_dashes_upper.setAttributeNS(null, "y", container.y + mv_margin_top);
   d_dashes_upper.classList.add("code");
   d_dashes_upper.textContent = make_dashes(columns);
 
   const d_headers = create_svg_el("text");
   d_headers.setAttributeNS(null, "x", container.x);
-  d_headers.setAttributeNS(null, "y", container.y + (mv_row_height * 2));
+  d_headers.setAttributeNS(null, "y", container.y + mv_margin_top + mv_row_height);
   d_headers.style.whiteSpace = "pre";
   d_headers.classList.add("code");
   d_headers.textContent = make_column_names(columns);
 
   const d_dashes_lower = create_svg_el("text");
   d_dashes_lower.setAttributeNS(null, "x", container.x);
-  d_dashes_lower.setAttributeNS(null, "y", container.y + (mv_row_height * 3));
+  d_dashes_lower.setAttributeNS(null, "y", container.y + mv_margin_top + (mv_row_height * 2));
   d_dashes_lower.classList.add("code");
   d_dashes_lower.textContent = make_dashes(columns);
   

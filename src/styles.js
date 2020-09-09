@@ -47,6 +47,7 @@ export const styles = {
   consumer_m_margin_right: 3,
 
   mv_container_fill: "#fbf7e6",
+  mv_margin_top: 10,
   mv_row_height: 15,
 
   render_controls: true,
