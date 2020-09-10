@@ -123,6 +123,20 @@ function initialize_stream_time(pqs) {
   }, {});
 }
 
+function initialize_state(pqs) {
+  return pqs.reduce((all, pq) => {
+    const { name, vars } = pq;
+    const { aggregate } = vars.query_parts;
+
+    if (aggregate && ("init" in aggregate)) {
+      all[name] = aggregate.init();
+    } else {
+      all[name] = undefined;
+    }
+    return all;
+  }, {});
+}
+
 function update_stream_time(stream_time, pq, t) {
   const st = stream_time[pq];
 
@@ -141,7 +155,7 @@ function evaluate_select(runtime_context, query_context, query_parts, before_row
 
   const after_row = { ...before_row_clone, ...{ id: uuidv4() } };
 
-  after_row.vars.record = select(before_row_clone.vars.record);
+  after_row.vars.record = select(query_context, before_row_clone.vars.record);
   after_row.vars.derived_id = before_row.id;
 
   set_after_stream(after_row, into);
@@ -208,6 +222,14 @@ function execute_filter(runtime_context, query_context, query_parts, before_row)
   }
 }
 
+function execute_aggregation(query_context, query_parts, state, pq, before_row) {
+  if (query_parts.aggregate) {
+    const delta = query_parts.aggregate.delta(state[pq], before_row.vars.record);
+    state[pq] = { ...state[pq], ...delta };
+    query_context.delta = delta;
+  }
+}
+
 export function init_runtime(objs, data_fns) {
   const streams = objs.filter(component => component.kind == "stream");
   const pqs = objs.filter(component => component.kind == "persistent_query");
@@ -221,13 +243,14 @@ export function init_runtime(objs, data_fns) {
     pq_seq: pq_seq,
     offsets: initialize_offsets(pqs, streams, by_name),
     stream_time: initialize_stream_time(pq_seq),
+    state: initialize_state(pqs),
     lineage: {},
     data_fns: data_fns
   };
 }
 
 export function tick(rt_context) {
-  const { streams, pqs, offsets, stream_time, lineage, data_fns } = rt_context;
+  const { streams, pqs, offsets, stream_time, state, lineage, data_fns } = rt_context;
   const { by_name, pack } = data_fns;
 
   const drained = is_drained(offsets, by_name);
@@ -257,16 +280,18 @@ export function tick(rt_context) {
       const sink_partitions = sink_data.children.partitions;
       
       const query_context = {
-        partitions: sink_partitions.length
+        partitions: sink_partitions.length,
       };
 
       if (query_parts.where) {
         if (query_parts.where(query_context, before_row.vars.record)) {
+          execute_aggregation(query_context, query_parts, state, pq, before_row);
           action = evaluate_select(runtime_context, query_context, query_parts, before_row);
         } else {
           action = execute_filter(runtime_context, query_context, query_parts, before_row);
         }
       } else {
+        execute_aggregation(query_context, query_parts, state, pq, before_row);
         action = evaluate_select(runtime_context, query_context, query_parts, before_row);
       }
     }

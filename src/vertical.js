@@ -65,6 +65,11 @@ function persistent_query_translate_y(data, height) {
 
   data.children.stream_time.rendering.y += height;
   data.children.stream_time.refs.bottom_y += height;
+
+  if (data.children.materialized_view) {
+    data.children.materialized_view.rendering.container.y += height;
+    data.children.materialized_view.refs.bottom_y += height;
+  }
   
   return data;
 }

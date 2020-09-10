@@ -14,6 +14,30 @@ const flavors = [
   "#FFC40C"
 ];
 
+const input_partitions = [
+  [
+    { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
+    { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
+    { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
+    { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
+    { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
+  ],
+  [
+    { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
+    { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
+    { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
+    { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
+    { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
+  ],
+  [
+    { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
+    { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
+    { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
+    { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
+    { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
+  ]
+];
+
 function stream(container) {
   const styles = {
     svg_width: 750,
@@ -84,30 +108,7 @@ function inserts(container) {
   s.add_root({
     name: "orders",
     kind: "stream",
-    partitions: [
-      [
-        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
-        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
-      ],
-      [
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
-        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
-        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
-        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
-        { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-
-      ],
-      [
-        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
-        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
-        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
-        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
-      ]
-    ]
+    partitions: input_partitions
   });
 
   s.render();
@@ -143,30 +144,7 @@ function transformation(container) {
   s.add_root({
     name: "orders",
     kind: "stream",
-    partitions: [
-      [
-        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
-        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
-      ],
-      [
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
-        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
-        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
-        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
-        { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-
-      ],
-      [
-        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
-        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
-        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
-        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
-      ]
-    ]
+    partitions: input_partitions
   });
 
   s.add_child(["orders"], {
@@ -181,7 +159,7 @@ function transformation(container) {
       "    FROM orders",
       "    EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -241,30 +219,7 @@ function filtering(container) {
   s.add_root({
     name: "orders",
     kind: "stream",
-    partitions: [
-      [
-        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
-        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
-      ],
-      [
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
-        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
-        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
-        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
-        { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-
-      ],
-      [
-        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
-        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
-        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
-        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
-      ]
-    ]
+    partitions: input_partitions
   });
 
   s.add_child(["orders"], {
@@ -279,7 +234,7 @@ function filtering(container) {
       "    FROM orders",
       "    EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -317,7 +272,7 @@ function filtering(container) {
       "    WHERE amount > 41",
       "    EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -375,30 +330,7 @@ function compressed(container) {
   s.add_root({
     name: "orders",
     kind: "stream",
-    partitions: [
-      [
-        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
-        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
-      ],
-      [
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
-        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
-        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
-        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
-        { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-
-      ],
-      [
-        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
-        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
-        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
-        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
-      ]
-    ]
+    partitions: input_partitions
   });
 
   s.add_child(["orders"], {
@@ -414,7 +346,7 @@ function compressed(container) {
       "    WHERE amount > 41",
       "    EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -477,30 +409,7 @@ function rekeying(container) {
   s.add_root({
     name: "orders",
     kind: "stream",
-    partitions: [
-      [
-        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
-        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
-      ],
-      [
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
-        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
-        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
-        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
-        { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-
-      ],
-      [
-        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
-        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
-        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
-        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
-      ]
-    ]
+    partitions: input_partitions
   });
 
   s.add_child(["orders"], {
@@ -516,7 +425,7 @@ function rekeying(container) {
       "    WHERE amount > 41",
       "    EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -557,7 +466,7 @@ function rekeying(container) {
       "    PARTITION BY country",
       "    EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -617,30 +526,7 @@ function consumers(container) {
   s.add_root({
     name: "orders",
     kind: "stream",
-    partitions: [
-      [
-        { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-        { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
-        { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-        { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
-        { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
-      ],
-      [
-        { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
-        { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
-        { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
-        { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
-        { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
-
-      ],
-      [
-        { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
-        { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
-        { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
-        { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
-        { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
-      ]
-    ]
+    partitions: input_partitions
   });
 
   s.add_child(["orders"], {
@@ -656,7 +542,7 @@ function consumers(container) {
       "    WHERE amount > 41",
       "    EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -697,7 +583,7 @@ function consumers(container) {
       "    PARTITION BY country",
       "    EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -734,7 +620,7 @@ function consumers(container) {
       "  FROM s2",
       "  EMIT CHANGES;"
     ],
-    select: function(row) {
+    select: function(context, row) {
       const { value } = row;
 
       const v = {
@@ -762,6 +648,109 @@ function consumers(container) {
   s.render();
 }
 
+function aggregation(container) {
+  const styles = {
+    svg_width: 750,
+    svg_height: 450,
+
+    pq_width: 200,
+    pq_height: 150,
+    pq_margin_top: 50,
+    pq_label_margin_left: 0,
+    pq_label_margin_bottom: 10,
+
+    part_width: 200,
+    part_height: 50,
+    part_margin_bottom: 20,
+    part_id_margin_left: -15,
+    part_id_margin_top: 15,
+
+    row_width: 15,
+    row_height: 15,
+    row_margin_left: 8,
+    row_offset_right: 10,
+
+    ms_px: 5
+  };
+
+  const s = new Specimen(container, styles);
+
+  s.add_root({
+    name: "orders",
+    kind: "stream",
+    partitions: input_partitions
+  });
+
+  s.add_child(["orders"], {
+    name: "pq1",
+    kind: "persistent_query",
+    into: "changelog",
+    query_text: [
+      "CREATE STREAM total_orders AS",
+      "    SELECT buyer,",
+      "           SUM(amount) AS total",
+      "    FROM orders",
+      "    GROUP BY buyer",
+      "    EMIT CHANGES;"
+    ],
+    select: function(context, row) {
+      const { delta } = context;
+      const { key, value } = row;
+
+      const v = {
+        count: delta[key]
+      }
+
+      return { ...row, ... { value: v } };
+    },
+    aggregate: {
+      init: function() {
+        return {
+        };
+      },
+      delta: function(state, row) {
+        const { key } = row;
+        const before = state[key] || 0;
+        const after = before + row.value.amount;
+
+        return {
+          [key] : after
+        };
+      },
+      columns: [
+        {
+          name: "buyer",
+          width: 11,
+          lookup: (row) => row.key
+        },
+        {
+          name: "total",
+          width: 11,
+          lookup: (row) => row.value.count
+        }
+      ]
+    },
+    style: {
+      materialized_view_height: 250,
+      fill: function(before_row, after_row) {
+        return "#D8365D";
+      }
+    }
+  });
+
+  s.add_child(["pq1"], {
+    name: "changelog",
+    kind: "stream",
+    partitions: [
+      [],
+      [],
+      []
+    ]
+  });
+
+  s.render();
+}
+
 stream("#stream");
 inserts("#inserts");
 transformation("#transformation");
@@ -769,3 +758,4 @@ filtering("#filtering");
 compressed("#compressed");
 rekeying("#rekeying");
 consumers("#multi-consumer");
+aggregation("#aggregation");

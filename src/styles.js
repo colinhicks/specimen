@@ -14,6 +14,9 @@ export const styles = {
   pq_metadata_offset_top: 20,
   pq_metadata_margin_top: 15,
 
+  st_margin_top: 20,
+  st_margin_left: 5,
+
   coll_padding_top: 10,
   coll_margin_bottom: 10,
   coll_tip_len: 10,
@@ -43,7 +46,12 @@ export const styles = {
   consumer_m_margin_bottom: 15,
   consumer_m_margin_right: 3,
 
+  mv_container_fill: "#fbf7e6",
+  mv_margin_top: 10,
+  mv_row_height: 15,
+
   render_controls: true,
+  render_stream_time: true,
 
   seek_ms: 25,
   ms_px: 2

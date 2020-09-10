@@ -1,6 +1,7 @@
 import { uuidv4, create_svg_el } from './../util';
 import * as sp from './source-partition';
 import * as st from './stream-time';
+import * as mv from './materialized-view';
 
 function build_source_partitions_data(arr, styles, computed) {
   const { left_x, top_y, margin } = computed;
@@ -31,13 +32,14 @@ function build_source_partitions_data(arr, styles, computed) {
 
 export function build_data(config, styles, computed) {
   const { name, source_partitions, query_text, index, style: pq_style } = config;
-  const { select, into, where, partition_by } = config;
+  const { select, aggregate, into, where, partition_by } = config;
 
   const { pq_width, pq_height, pq_container_fill,
           pq_container_opacity, pq_margin_top
         } = styles;
   const { pq_label_margin_left, pq_label_margin_bottom } = styles;
   const { pq_metadata_offset_top, pq_metadata_margin_top } = styles;
+  const { st_margin_top, st_margin_left } = styles;
 
   const { predecessors, successors, top_y, midpoint_x } = computed;
 
@@ -56,12 +58,28 @@ export function build_data(config, styles, computed) {
     margin: pq_metadata_margin_top
   });
 
-  top_y_slide = source_partitions_data.slice(-1)[0].refs.bottom_y + pq_metadata_offset_top;
+  top_y_slide = source_partitions_data.slice(-1)[0].refs.bottom_y;
   const stream_time_data = st.build_data({}, styles, {
-    left_x: left_x,
-    top_y: top_y_slide,
+    left_x: left_x + st_margin_left,
+    top_y: absolute_top_y + st_margin_top,
     bottom_margin: pq_metadata_margin_top
   });
+
+  const children = {
+    stream_time: stream_time_data,
+    source_partitions: source_partitions_data,
+  };
+
+  if (aggregate) {
+    const mv_data = mv.build_data({ aggregate, pq_style }, styles, {
+      top_y: top_y_slide,
+      left_x: left_x,
+      width: pq_width
+    });
+    top_y_slide = mv_data.refs.bottom_y;
+
+    children.materialized_view = mv_data;
+  }
 
   return {
     kind: "persistent_query",
@@ -94,23 +112,22 @@ export function build_data(config, styles, computed) {
     vars: {
       query_text: query_text,
       query_parts: {
-        select: select,
-        into: into,
-        where: where,
-        partition_by: partition_by
-      }
+        select,
+        aggregate,
+        into,
+        where,
+        partition_by
+      },
+      stateful: Boolean(aggregate)
     },
-    children: {
-      stream_time: stream_time_data,
-      source_partitions: source_partitions_data
-    },
+    children: children,
     graph: {
       predecessors: predecessors,
       successors: successors
     },
     refs: {
       top_y: absolute_top_y,
-      bottom_y: stream_time_data.refs.bottom_y,
+      bottom_y: top_y_slide,
       box_bottom_y: box_bottom_y,
       midpoint_y: box_bottom_y - (pq_height / 2),
       left_x: left_x,
@@ -123,7 +140,7 @@ export function build_data(config, styles, computed) {
 export function render(data) {
   const { id, name, vars, rendering, children } = data;
   const { line, label, container } = rendering;
-  const { stream_time, source_partitions } = children;
+  const { stream_time, source_partitions, materialized_view } = children;
 
   const g = create_svg_el("g");
   g.id = id;
@@ -161,7 +178,13 @@ export function render(data) {
   g.appendChild(d_container);
   g.appendChild(d_label);
   g.appendChild(d_stream_time);
+
   d_source_partitions.forEach(sp => g.appendChild(sp));
+
+  if (materialized_view) {
+    const d_materialized_view = mv.render(materialized_view);
+    g.appendChild(d_materialized_view);
+  }
 
   return g;
 }
