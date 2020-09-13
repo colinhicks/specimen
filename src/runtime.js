@@ -186,7 +186,7 @@ function evaluate_select(runtime_context, query_context, query_parts, before_row
   };
 }
 
-function execute_filter(runtime_context, query_context, query_parts, before_row) {
+function halt_record(runtime_context, query_context, before_row, kind) {
   const { offsets, stream_time, pq, pack, lineage } = runtime_context;
 
   const before_record = before_row.vars.record;
@@ -207,7 +207,7 @@ function execute_filter(runtime_context, query_context, query_parts, before_row)
   }
 
   return {
-    kind: "discard",
+    kind: kind,
     before: {
       row: before_row,
       offsets: before_offsets,
@@ -220,6 +220,14 @@ function execute_filter(runtime_context, query_context, query_parts, before_row)
     },
     processed_by: pq
   }
+}
+
+function execute_filter(runtime_context, query_context, before_row) {
+  return halt_record(runtime_context, query_context, before_row, "discard");
+}
+
+function execute_absorb(runtime_context, query_context, before_row) {
+  return halt_record(runtime_context, query_context, before_row, "absorb");
 }
 
 function execute_aggregation(query_context, query_parts, state, pq, before_row) {
@@ -276,23 +284,29 @@ export function tick(rt_context) {
 
     if (before_row) {
       const query_parts = pq_data.vars.query_parts;
-      const sink_data = by_name(query_parts.into);
-      const sink_partitions = sink_data.children.partitions;
-      
-      const query_context = {
-        partitions: sink_partitions.length,
-      };
 
-      if (query_parts.where) {
-        if (query_parts.where(query_context, before_row.vars.record)) {
+      if (!query_parts.into) {
+        execute_aggregation({}, query_parts, state, pq, before_row);
+        action = execute_absorb(runtime_context, {}, before_row);
+      } else {
+        const sink_data = by_name(query_parts.into);
+        const sink_partitions = sink_data.children.partitions;
+        
+        const query_context = {
+          partitions: sink_partitions.length,
+        };
+
+        if (query_parts.where) {
+          if (query_parts.where(query_context, before_row.vars.record)) {
+            execute_aggregation(query_context, query_parts, state, pq, before_row);
+            action = evaluate_select(runtime_context, query_context, query_parts, before_row);
+          } else {
+            action = execute_filter(runtime_context, query_context, before_row);
+          }
+        } else {
           execute_aggregation(query_context, query_parts, state, pq, before_row);
           action = evaluate_select(runtime_context, query_context, query_parts, before_row);
-        } else {
-          action = execute_filter(runtime_context, query_context, query_parts, before_row);
         }
-      } else {
-        execute_aggregation(query_context, query_parts, state, pq, before_row);
-        action = evaluate_select(runtime_context, query_context, query_parts, before_row);
       }
     }
 

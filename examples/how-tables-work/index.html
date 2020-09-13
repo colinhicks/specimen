@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -7,7 +8,39 @@
   </head>
 
   <body>
-    <h1>it's tables</h1>
-    <script src="./bundle.js"></script>
+    <div>
+    <h1>Understanding how real-time materialized views work with ksqlDB</h1>
+
+    <p>All around the world, companies are in chorus asking the same question: what is happening <em>right now</em>? We are inundated with pieces of data that have a fragment of the answer. But by the time we have assembled them into one clear view, the answer often no longer matters. It is too late.</p>
+
+    <p>Stateful stream processing is the way to beat the clock. It’s a programming paradigm for materializing views of data in real-time. What does that mean? You ask questions whose answer is incrementally updated as new information arrives, meaning your queries will always be fast.</p>
+
+    <p><a href="#">ksqlDB</a>, the event streaming database, makes it easy to build real-time materialized views over Kafka. But how does it work? In part 1 of this series, we looked at how stateless operations work. The subject of this post is stateful ones. If you like, you can follow along by executing the example code yourself. <a href="#">ksqlDB's quickstart</a> makes it easy to get up and running.</p>
+
+    <div>
+      <h2>Materializing a view from a stream</h2>
+      <div id="materialized-view" style="width: 750px;">
+    </div>
+
+    <div>
+      <h2>Automatic repartitioning</h2>
+      <div id="repartitioning" style="width: 750px;">
+    </div>
+
+    <div>
+      <h2>Replaying from changelogs</h2>
+      <div id="replaying-from-changelog" style="width: 750px;">
+    </div>
+
+    <div>
+      <h2>Materializing the latest values</h2>
+      <div id="latest" style="width: 750px;">
+    </div>
+
+    <div>
+      <h2>Chaining materialized views</h2>
+      <div id="chained" style="width: 750px;">
+    </div>
+    <script src="./bundle.js"></script>    
   </body>
 </html>
