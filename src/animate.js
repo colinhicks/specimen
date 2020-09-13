@@ -1,19 +1,23 @@
 import * as k from "./animations/keep";
 import * as d from "./animations/discard";
+import * as a from "./animations/absorb";
 
 let update_layout_fns = {
   "keep": k.update_layout,
-  "discard": k.update_layout
+  "discard": k.update_layout,
+  "absorb": k.update_layout
 };
 
 let animation_seq_fns = {
   "keep": k.animation_seq,
   "discard": d.animation_seq,
+  "absorb": a.animation_seq
 };
 
 let anime_data_fns = {
   "keep": k.anime_data,
-  "discard": d.anime_data
+  "discard": d.anime_data,
+  "absorb": a.anime_data
 };
 
 export function init_animation_context() {
