@@ -28,7 +28,7 @@ const a_input_partitions = [
 function materialized_view(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 450,
+    svg_height: 400,
 
     pq_width: 200,
     pq_height: 150,
@@ -151,7 +151,7 @@ const b_input_partitions = [
 function repartitioning(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 450,
+    svg_height: 300,
 
     pq_width: 100,
     pq_height: 75,

@@ -82,7 +82,15 @@ CREATE STREAM clean AS
 
     <div>
       <h2>Automatic repartitioning</h2>
-      <div id="repartitioning" style="width: 750px;">
+
+      <p>There are many clauses that a materialized view statement can be created with, but one that is required every time is <code>GROUP BY</code>. In a relational database, <code>GROUP BY</code> buckets rows according to some criteria before an aggregation executes. In ksqlDB’s streaming SQL, it repartitions your streams to ensure that all rows that have the same key reside on the same partition. This happens invisibility through a second, automatic stage of computation:</p>
+
+      <div id="repartitioning" style="width: 750px;"></div>
+
+      <p>In distributed systems, the process of reorganizing data locality is known as <em>shuffling</em>. Kafka Streams, ksqlDB’s underlying execution, uses Kafka topics to shuffle intermediate data. These implementation-level topics are usually named <code>repartition-*</code>, and are created and managed on your behalf. Repartition topics have the same number of partitions as their source topics. Because records are potentially moved between partitions, the overall order of data within each partition is no longer guaranteed. This is important to consider when you initially load data into Kafka. In general, it is always wise to avoid a shuffle in any system if you can, since there is inherent computational work involved.</p>
+
+      <p>If your data is already partitioned according to the GROUP BY criteria, the repartitioning is skipped. This is one of the huge advantages to ksqlDB’s strong type system on top of Kafka. Optimizations can be inferred from the schema of your data, and unnecessary IO can be transparently omitted.</p>
+        
     </div>
 
     <div>
