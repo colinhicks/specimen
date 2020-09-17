@@ -19,9 +19,9 @@ const watch = {
 
 export default [
   {
-    input: "./examples/basic-topology/src/index.js",
+    input: "./examples/basics/src/index.js",
     output: {
-      file: "./examples/basic-topology/bundle.js",
+      file: "./examples/basics/bundle.js",
       format: "iife"
     },
     plugins,
