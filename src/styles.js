@@ -11,8 +11,11 @@ export const styles = {
   pq_container_opacity: 0.5,
   pq_label_margin_left: 0,
   pq_label_margin_bottom: 10,
-  pq_metadata_offset_top: 20,
+  pq_metadata_offset_top: 10,
   pq_metadata_margin_top: 15,
+
+  source_partitions_margin_left: 10,
+  source_partitions_fill: "#f5f5f5",
 
   st_margin_top: 20,
   st_margin_left: 5,
@@ -51,7 +54,7 @@ export const styles = {
   mv_row_height: 15,
 
   render_controls: true,
-  render_stream_time: true,
+  render_stream_time: false,
 
   seek_ms: 25,
   ms_px: 2

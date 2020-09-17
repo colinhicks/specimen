@@ -58,7 +58,9 @@ function persistent_query_translate_y(data, height) {
   data.refs.bottom_y += height;
   data.refs.box_bottom_y += height;
 
-  data.children.source_partitions.forEach(partition => {
+  data.children.source_partitions.rendering.container.y += height;
+
+  data.children.source_partitions.children.partitions.forEach(partition => {
     partition.rendering.y += height;
     partition.refs.bottom_y += height;
   });

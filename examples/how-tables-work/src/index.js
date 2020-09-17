@@ -402,7 +402,7 @@ const e_input_partitions = [
 function replaying_from_compacted(container) {
   const styles = {
     svg_width: 400,
-    svg_height: 350,
+    svg_height: 375,
 
     pq_width: 110,
     pq_height: 75,
@@ -506,7 +506,7 @@ const d_input_partitions = [
 function latest(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 325,
+    svg_height: 375,
 
     pq_width: 200,
     pq_height: 150,

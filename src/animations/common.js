@@ -26,7 +26,7 @@ export function update_pq_offsets(data_fns, pq_name, offsets) {
 
   Object.entries(offsets).forEach(([ collection, partitions] ) => {
     Object.entries(partitions).forEach(([ partition, offset ]) => {
-      const sp_data = pq_data.children.source_partitions[partition];
+      const sp_data = pq_data.children.source_partitions.children.partitions[partition];
       const last_offset = offset - 1;
 
       sp.update_offset(sp_data, last_offset);
