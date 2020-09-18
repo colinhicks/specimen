@@ -19,8 +19,8 @@ function show_record_contents(card_id) {
     const card = document.getElementById(card_id);
 
     card.style.display = "block";
-    card.style.left = event.pageX + 10 + "px";
-    card.style.top = event.pageY + 10 + "px";
+    card.style.left = event.offsetX + 10 + "px";
+    card.style.top = event.offsetY + 10 + "px";
   };
 }
 
