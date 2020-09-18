@@ -3,12 +3,13 @@ import { uuidv4, create_svg_el } from './../util';
 export function build_data(config, styles, computed) {
   const { stream, partition } = config;
   const { left_x, top_y, bottom_margin } = computed;
+  const { source_partitions_margin_left } = styles;
 
   return {
     kind: "source_partition_offset",
     id: uuidv4(),
     rendering: {
-      x: left_x,
+      x: left_x + source_partitions_margin_left,
       y: top_y,
       subtext_id: uuidv4()
     },
@@ -44,7 +45,6 @@ export function render(data) {
 
   return text;
 }
-
 
 export function update_offset(source_partition, offset) {
   const { rendering, vars } = source_partition;

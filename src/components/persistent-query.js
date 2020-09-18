@@ -1,34 +1,7 @@
 import { uuidv4, create_svg_el } from './../util';
-import * as sp from './source-partition';
+import * as sps from './source-partitions';
 import * as st from './stream-time';
 import * as mv from './materialized-view';
-
-function build_source_partitions_data(arr, styles, computed) {
-  const { left_x, top_y, margin } = computed;
-  let current_top_y = top_y;
-
-  return Object.entries(arr).reduce((all, [stream, partitions]) => {
-    partitions.forEach(partition => {
-      const this_top_y = current_top_y;
-
-      const config = {
-        stream: stream,
-        partition: partition
-      };
-
-      const this_computed = {
-        left_x: left_x,
-        top_y: this_top_y,
-        bottom_margin: margin
-      };
-
-      all.push(sp.build_data(config, styles, this_computed));
-      current_top_y += margin;
-    });
-
-    return all;
-  }, []);
-}
 
 export function build_data(config, styles, computed) {
   const { name, source_partitions, query_text, index, style: pq_style } = config;
@@ -52,13 +25,14 @@ export function build_data(config, styles, computed) {
   const line_bottom_y = top_y_slide - 5;
 
   const metadata_top_y = box_bottom_y + pq_metadata_offset_top;
-  const source_partitions_data = build_source_partitions_data(source_partitions, styles, {
+  const source_partitions_data = sps.build_data({ source_partitions }, styles, {
     left_x: left_x,
     top_y: metadata_top_y,
+    width: pq_width,
     margin: pq_metadata_margin_top
   });
 
-  top_y_slide = source_partitions_data.slice(-1)[0].refs.bottom_y;
+  top_y_slide = source_partitions_data.children.partitions.slice(-1)[0].refs.bottom_y + pq_metadata_offset_top;
   const stream_time_data = st.build_data({}, styles, {
     left_x: left_x + st_margin_left,
     top_y: absolute_top_y + st_margin_top,
@@ -169,7 +143,7 @@ export function render(data) {
   d_label.textContent = name;
 
   const d_stream_time = st.render(stream_time);
-  const d_source_partitions = source_partitions.map(s => sp.render(s));
+  const d_source_partitions = sps.render(source_partitions);
 
   if (rendering.top_component) {
     g.appendChild(d_line);
@@ -178,8 +152,7 @@ export function render(data) {
   g.appendChild(d_container);
   g.appendChild(d_label);
   g.appendChild(d_stream_time);
-
-  d_source_partitions.forEach(sp => g.appendChild(sp));
+  g.appendChild(d_source_partitions);
 
   if (materialized_view) {
     const d_materialized_view = mv.render(materialized_view);

@@ -28,7 +28,7 @@ const a_input_partitions = [
 function materialized_view(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 450,
+    svg_height: 375,
 
     pq_width: 200,
     pq_height: 150,
@@ -151,7 +151,7 @@ const b_input_partitions = [
 function repartitioning(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 450,
+    svg_height: 275,
 
     pq_width: 100,
     pq_height: 75,
@@ -298,7 +298,7 @@ const c_input_partitions = [
 function replaying_from_changelog(container) {
   const styles = {
     svg_width: 400,
-    svg_height: 450,
+    svg_height: 275,
 
     pq_width: 110,
     pq_height: 75,
@@ -382,6 +382,110 @@ function replaying_from_changelog(container) {
   s.render();
 }
 
+const e_input_partitions = [
+  [
+    { key: "grc", value: { count: 43 }, t: 10, style: { fill: "#66CC69" } },
+    { key: "eth", value: { count: 84 }, t: 25, style: { fill: "#66CC69" } },
+    { key: "aut", value: { count: 127 }, t: 26, style: { fill: "#66CC69" } },
+    { key: "grc", value: { count: 169 }, t: 42, style: { fill: "#66CC69" } },
+    { key: "bol", value: { count: 209 }, t: 45, style: { fill: "#66CC69" } },
+  ],
+  [
+    { key: "cmr", value: { count: 45 }, t: 11, style: { fill: "#66CC69" } },
+    { key: "sgp", value: { count: 86 }, t: 31, style: { fill: "#66CC69" } },
+    { key: "usa", value: { count: 128 }, t: 34, style: { fill: "#66CC69" } },
+    { key: "col", value: { count: 170 }, t: 43, style: { fill: "#66CC69" } },
+    { key: "srb", value: { count: 211 }, t: 57, style: { fill: "#66CC69" } },
+  ]
+];
+
+function replaying_from_compacted(container) {
+  const styles = {
+    svg_width: 400,
+    svg_height: 375,
+
+    pq_width: 110,
+    pq_height: 75,
+    pq_margin_top: 50,
+    pq_label_margin_left: 0,
+    pq_label_margin_bottom: 10,
+
+    part_width: 100,
+    part_height: 25,
+    part_margin_bottom: 20,
+    part_id_margin_left: -15,
+    part_id_margin_top: 15,
+
+    row_width: 10,
+    row_height: 10,
+    row_margin_left: 8,
+    row_offset_right: 10,
+
+    render_stream_time: false,
+
+    ms_px: 3.5
+  };
+
+  const s = new Specimen(container, styles);
+
+  s.add_root({
+    name: "changelog",
+    kind: "stream",
+    partitions: e_input_partitions
+  });
+
+  s.add_child(["changelog"], {
+    name: "pq1",
+    kind: "persistent_query",
+    query_text: [
+      "CREATE STREAM total_orders AS",
+      "    SELECT buyer,",
+      "           SUM(amount) AS total",
+      "    FROM orders",
+      "    GROUP BY buyer",
+      "    EMIT CHANGES;"
+    ],
+    select: function(context, row) {
+      return row;
+    },
+    aggregate: {
+      init: function() {
+        return {
+        };
+      },
+      delta: function(state, row) {
+        const { key } = row;
+        const before = state[key] || 0;
+        const after = before + row.value.amount;
+
+        return {
+          [key] : after
+        };
+      },
+      columns: [
+        {
+          name: "buyer",
+          width: 6,
+          lookup: (row) => row.key
+        },
+        {
+          name: "total",
+          width: 5,
+          lookup: (row) => row.value.count
+        }
+      ]
+    },
+    style: {
+      materialized_view_height: 185,
+      fill: function(before_row, after_row) {
+        return "#66CC69";
+      }
+    }
+  });
+
+  s.render();
+}
+
 const d_input_partitions = [
   [
     { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
@@ -402,7 +506,7 @@ const d_input_partitions = [
 function latest(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 450,
+    svg_height: 375,
 
     pq_width: 200,
     pq_height: 150,
@@ -506,7 +610,7 @@ function latest(container) {
 function chained(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 450,
+    svg_height: 300,
 
     pq_width: 110,
     pq_height: 75,
@@ -671,5 +775,6 @@ function chained(container) {
 materialized_view("#materialized-view");
 repartitioning("#repartitioning");
 replaying_from_changelog("#replaying-from-changelog");
+replaying_from_compacted("#replaying-from-compacted");
 latest("#latest");
 chained("#chained");

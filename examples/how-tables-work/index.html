@@ -13,34 +13,142 @@
 
     <p>All around the world, companies are in chorus asking the same question: what is happening <em>right now</em>? We are inundated with pieces of data that have a fragment of the answer. But by the time we have assembled them into one clear view, the answer often no longer matters. It is too late.</p>
 
-    <p>Stateful stream processing is the way to beat the clock. It’s a programming paradigm for materializing views of data in real-time. What does that mean? You ask questions whose answer is incrementally updated as new information arrives, meaning your queries will always be fast.</p>
+    <p>Stateful stream processing is the way to beat the clock. It’s a programming paradigm for materializing views of data in real-time. What does that mean? You ask questions whose answer is incrementally updated as new information arrives, meaning queries will always be fast.</p>
 
     <p><a href="#">ksqlDB</a>, the event streaming database, makes it easy to build real-time materialized views over Kafka. But how does it work? In part 1 of this series, we looked at how stateless operations work. The subject of this post is stateful ones. If you like, you can follow along by executing the example code yourself. <a href="#">ksqlDB's quickstart</a> makes it easy to get up and running.</p>
 
     <div>
       <h2>Materializing a view from a stream</h2>
-      <div id="materialized-view" style="width: 750px;">
+
+      <p>The goal of a materialized view is simple: make a read-optimized version of your data so that your queries are less expensive when they run. When does that version of your data get built? In a traditional database, you have to trigger it to happen. And when you do, it needs to be rebuilt from scratch, which can take a lot of time.</p>
+
+      <p>In stream processing, the maintence of the view is automatic and incremental. The view updates as soon as new events arrive, and is adjusted in the smallest possible manner based on the delta rather than recomputed from scratch. That is why we say stream processing gives you <em>real-time</em> materialized views. If you had a stream of monitoring data:</p>
+
+      <pre class="narrative-code">
+        <code class="lang-sql">
+CREATE STREAM orders (
+    user VARCHAR KEY,
+    country VARCHAR,
+    amount INT
+) WITH (
+    kafka_topic = 'orders',
+    partitions = 3,
+    value_format = 'json'
+);
+        </code>
+      </pre>
+
+      <p>Whose events looked like:</p>
+
+      <pre class="narrative-code"><code class="lang-sql">
+INSERT INTO orders (user, country, amount) VALUES ('buyer-1', 'usa', 45);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-2', 'eth', 41);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-1', 'usa', 42);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-3', 'grc', 42);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-3', 'grc', 40);
+
+INSERT INTO orders (user, country, amount) VALUES ('buyer-4', 'eth', 43);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-6', 'grc', 43);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-5', 'usa', 41);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-5', 'usa', 42);
+INSERT INTO orders (user, country, amount) VALUES ('buyer-4', 'eth', 41);
+      </code></pre>
+
+      <p>You might want to frequently check the current average of each sensor.  You can materialize a view of that stream like so:</p>
+
+      <pre class="narrative-code">
+        <code class="lang-sql">
+CREATE STREAM clean AS
+    SELECT buyer,
+           amount,
+           UCASE(country) AS country
+    FROM orders
+    EMIT CHANGES;
+        </code>
+      </pre>
+
+      <p>What happens when you run this statement on ksqlDB? Its server (we’re just looking at a single node in this post—in a future post we’ll look at how this works when ksqlDB is clustered) creates a new persistent query that runs forever, processing the data as it arrives. As new rows arrive from the <code>monitoring</code> stream, the persistent query does two things. First, it incrementally updates the materialized view to integrate the new data. Second, it emits a row to a <em>changelog</em> topic. The changelog is an audit trail of all updates made to the materialized view, which we’ll see is handy both functionally and architecturally. Here is what that process looks like:</p>
+
+      <div id="materialized-view" style="width: 750px;"></div>
+
+      <p>Pause the animation at any point and note the relationship between the materialized view and the changelog, hovering over the rows in the changelog to see their contents. The current values in the materialized views are the <em>latest</em> values per key in the changelog.</p>
+
+      <p>A materialized view is only as good as the queries it serves, and ksqlDB gives you two ways to do it: push and pull queries. Both are issued by client programs to bring materialized view data into applications. Pull queries retrieve results at a point-in-time (namely “now”). If you run a query such as <code>SELECT * FROM t1 WHERE k1=’s1’;</code>, the result will be whatever is in the materialized view when it is run. You can explore this by sliding around the progress bar of the animation. Push queries stream a subscription of changes to the query result as they occur. If you run <code>SELECT * FROM t1 WHERE k1=’s1’ EMIT CHANGES;</code>, each of the rows in the changelog with key s1 will be streamed to your application.</p>
     </div>
+
+    <p>Beyond the programming abstraction, what is actually going on under the hood? When ksqlDB begins executing the persistent query, it leverages RocksDB to store the materialized view locally on its disk. RocksDB is an embedded key/value store that runs in-process on ksqlDB—you do not need to start, manage or interact with it. It uses RocksDB to store the materialized view because it takes care of all the details of storing an associated data structure on disk with high performance.</p>
+
+    <p>ksqlDB server creates one RocksDB instance per partition of its immediate input streams. This per-partition isolation is an architectural advantage when ksqlDB runs as a cluster, but it does have one important implication—all rows that you want to be aggregated together must reside on the same partition of the incoming stream. But what happens if that isn’t the case?</p>
 
     <div>
       <h2>Automatic repartitioning</h2>
-      <div id="repartitioning" style="width: 750px;">
+
+      <p>There are many clauses that a materialized view statement can be created with, but one that is required every time is <code>GROUP BY</code>. In a relational database, <code>GROUP BY</code> buckets rows according to some criteria before an aggregation executes. In ksqlDB’s streaming SQL, it repartitions your streams to ensure that all rows that have the same key reside on the same partition. This happens invisibility through a second, automatic stage of computation:</p>
+
+      <div id="repartitioning" style="width: 750px;"></div>
+
+      <p>In distributed systems, the process of reorganizing data locality is known as <em>shuffling</em>. Kafka Streams, ksqlDB’s underlying execution, uses Kafka topics to shuffle intermediate data. These implementation-level topics are usually named <code>repartition-*</code>, and are created and managed on your behalf. Repartition topics have the same number of partitions as their source topics. Because records are potentially moved between partitions, the overall order of data within each partition is no longer guaranteed. This is important to consider when you initially load data into Kafka. In general, it is always wise to avoid a shuffle in any system if you can, since there is inherent computational work involved.</p>
+
+      <p>If your data is already partitioned according to the <code>GROUP BY</code> criteria, the repartitioning is skipped. This is one of the huge advantages to ksqlDB’s strong type system on top of Kafka. Optimizations can be inferred from the schema of your data, and unnecessary IO can be transparently omitted.</p>
+        
     </div>
 
     <div>
       <h2>Replaying from changelogs</h2>
-      <div id="replaying-from-changelog" style="width: 750px;">
+
+
+      <p>The architecture described so far supports a myriad of materializations, but what happens when a hardware fault causes you to permanently lose ksqlDB? RocksDB is an embedded key/value store. It has no replication support to create secondary copies over a network. In other words, RocksDB is transient. When you lose ksqlDB server, you also lose RocksDB. Is that a problem?</p>
+
+
+      <p>It turns out that it isn't. Remember that every time a materialized view updates, the persistent query maintaining it also writes out a row to a changelog topic. Each row contains the value that the materialized view was updated to. When a fresh ksqlDB server comes online and is assigned a stateful task, it checks to see whether it has any relevant data in RocksDB for that materialized view. If it doesn’t, it replays the changelog data directly into its RocksDB store. When it reaches the end, its local materialized view is up to date, and it can begin serving queries.</p>
+      
+      <div id="replaying-from-changelog" style="width: 750px;"></div>
+
+      <p>The process is the same even if the server boots up and has some RocksDB data. When ksqlDB is run as a cluster, another server may have taken over in its place. A ksqlDB server coming online with stale data in RocksDB can simply replay the part of the changelog that is new, allowing it to rapidly recover to the current state.</p>
+
+      <p>People often ask where exactly a materialized view is stored. It is, in fact, stored in two places, each of which is optimized for a different usage pattern. It is stored once in RocksDB on ksqlDB server in its materialized form for fast access, and once in Kafka’s brokers in the changelog in incremental update form for recovery.</p>
+
+      <p>This design can recover from faults, but what happens when the changelog topic grows very large? If this was the totality of how it works, it would simply take a long time for a new server to come back online since it would need to load all the changes into RocksDB. The changelog topic, however, is configured for <em>compaction</em>. Compaction  is a process that runs in the background on the Kafka broker that periodically deletes all but the latest record per key per topic partition. This means that older updates for each key are periodically deleted, and the changelog shrinks to only the most relevant values. In practice, reloading a materialized view into ksqlDB tends to look less like the above animation (with many updates per key) and more like the below animation (with few updates per key).</p>
+
+      <div id="replaying-from-compacted" style="width: 750px;"></div>
+
+      <p>This approach is powerful because RockDB is highly efficient for bulk writes. ksqlDB continuously streams log data from Kafka over the network and inserts it into RocksDB at high speed.</p>
     </div>
 
     <div>
       <h2>Materializing the latest values</h2>
-      <div id="latest" style="width: 750px;">
+
+      <p>Many materialized views compound data over time, aggregating data into one value that reflects history. Sometimes, though, you might want to create a materialized view that is just the last value for each key. The solution to this problem is straightforward—even deceptively simple.</p>
+
+      <p>As a programmer, you just wrap the column whose value you want to retain with the <code>LATEST_BY_OFFSET</code> aggregation. To understand what <code>LATEST_BY_OFFSET</code> is doing, it helps to understand the interface that aggregations have to implement. Aggregation functions have two key methods: one that initializes their state, and another that updates the state based on the arrival of a new row. For example, the sum aggregation adds the incoming value to its running total. <code>LATEST_BY_OFFSET</code> is a clever function that initializes its state for each key to <code>null</code>. Each time a new value arrives for the key, its old value is thrown out and is replaced entirely by the new value.</p>
+
+      <p>The effect is that you can build a materialized view that always reflects the last thing that happened, which is useful for building a cache based on recency.</p>
+
+      <div id="latest" style="width: 750px;"></div>
+
+      <p>As its name suggests, “latest” is defined in terms of offsets—not by time. In the future, ksqlDB will add support for building the same kind of materialized view over unordered events.</p>
     </div>
 
     <div>
       <h2>Chaining materialized views</h2>
-      <div id="chained" style="width: 750px;">
+
+      <p>Changelogs are the foundation for both fault recovery and streaming query results, but also they play another key role: they make materialized views composable. A materialized view can be derived from another materialized view, ad infinitum (theoretically). This works similarly to how a materialized view is built off a stream, with one key difference.</p>
+
+      <p>When a materialized view is constructed over a stream, it is materializing state over a series of facts. But when a materialized view is derived from another materialized view, it is built off of the changelog of the latter. Instead of a series of facts, a changelog is more like a restatement of facts over time. Because a changelog represents the ongoing changes to a materialized view, facts are effectively retracted before they are asserted again. That is why aggregations that operate over ksqlDB tables have an undo method. They need to be able to retract facts that are no longer true for each key before they are reasserted.</p>
+
+      <div id="chained" style="width: 750px;"></div>
+
+      <p>Chaining materialized views yields a decisive performance advantage. If you have one materialization that is expensive to compute, you can move less expensive materializations that build on it downstream to amortize its cost. This composability allows you to make trade-off decisions between storage and compute.</p>
+
+      <p>This creates one final problem, though. If a chained materialized view (<code>mv2</code>) is built off of the changelog of another materialized view (<code>mv1</code>), then <code>mv2</code> is actually reading from a compacted topic. Compacted topics periodically expunge old records per key. That means that if mv2 goes offline for a while and comes back, data that it might be interested in will have already been compacted! How do you get out of this bind?</p>
+
+      <p>Like any piece of software, you make an informed trade-off. Kafka exposes a topic-level configuration called min compaction lag. This parameter puts a floor on how frequently compaction runs, and allows you to trade-off how long your replay times will be versus how much history you want to preserve.</p>
     </div>
+
+    <div>
+      <h2>Learning more</h2>
+    </div>
+      
     <script src="./bundle.js"></script>    
   </body>
 </html>
