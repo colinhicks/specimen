@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <!-- <link rel="stylesheet" href="../../css/theme.css"> -->
-         <link rel="stylesheet" href="../../css/github.css">
+    <!-- <link rel="stylesheet" href="../../css/github.css"> -->
     <link rel="stylesheet" href="styles-fragment.css" />
     <link rel="preload" as="font" href="https://www.confluent.io/fonts/MarkOT/MarkOT.woff2"/>
     <link rel="preload" as="font" href="https://www.confluent.io/fonts/MarkOT/MarkOT-Italic.woff2"/>
@@ -18,89 +18,7 @@
     <link href="https://cdn.confluent.io/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://www.confluent.io/css/main.css" rel="stylesheet"/>
     <link href="https://www.confluent.io/css/print.css" rel="stylesheet" media="print"/>
-    <style>
-     .specimen .pq {
-         stroke: #b5b5b5;
-         stroke-width: 1;
-         fill: none;
-     }
 
-     .specimen .pq-connector {
-         stroke: #b5b5b5;
-         stroke-dasharray: 4;
-     }
-
-     .specimen .stream-connector {
-         stroke: #b5b5b5;
-     }
-
-     .specimen .row-transformed {
-         fill: #a96bff;
-     }
-
-     .specimen .row.discard {
-         fill: #ff9c6b;
-     }
-
-     .specimen .partition {
-         stroke: #000000;
-         stroke-width: 1;
-         fill: none;
-     }
-
-     .specimen .code {
-         font-family: monospace;
-         font-size: 14px;
-     }
-
-     .specimen .pq-code-container {
-         margin-top: 40px;
-     }
-
-     .specimen .controls {
-         padding-bottom: 10px;
-     }
-
-     .specimen .animation {
-         padding-top: 10px;
-     }
-     
-     .specimen .controls button {
-         display: inline-block;
-         width: 9%;
-         margin-right: 1%;
-     }
-     
-     .specimen .controls input[type="range"] {
-         display: inline-block;
-         width: 90%;
-     }
-
-     .specimen .pq-code-container pre {
-         padding: 0 !important;
-     }
-
-     .specimen .controls button {
-         margin-right: 5px;
-     }
-
-     .specimen .source-partitions {
-         display: none;
-     }
-
-     #transformation .source-partitions {
-         display: block;
-     }
-
-     #filtering .pq-code-container pre:first-child {
-         left: -20px !important;
-     }
-
-     #filtering .pq-code-container pre:last-child {
-         left: 20px !important;
-     }
-
-    </style>
   </head>
 
   <body class="style-module--blogPost--1pOcN">
@@ -110,8 +28,6 @@
           <h1>How real-time stream processing works with ksqlDB, in 7 animations</h1>
 
           <p><a href="http://ksqldb.io/">ksqlDB</a>, the event streaming database, is becoming one of the most popular ways to work with Apache Kafka®. Every day, we answer many questions about the project, but here’s a question with an answer that we are always trying to improve: How does ksqlDB work?</p>
-
-          <p>ksqlDB makes it easy to leverage a programming paradigm called stream processing. You can think of stream processing as middle ground between two older styles of programming: <em>request-response</em> and <em>batch</em>. With request-response, a single input and a single output are exchanged at each interaction. Its low latency comes at the cost of lower throughput. At the other end of the spectrum, batch deals with many inputs at once. Here, throughput can be much greater with the tradeoff of higher latency. With stream processing, you essentially get a “dial” to trade off latency and throughput. Stream processors can wait longer to gather greater or fewer inputs before emitting output.</p>
           
           <p>The mechanics behind stream processing can be challenging to grasp. The concepts are abstract, and many of them involve motion—two things that are hard for the mind’s eye to visualize. Let’s pop open the hood of ksqlDB to explore its essential concepts, how each works, and how it all relates to Kafka.</p>
 
@@ -144,7 +60,7 @@ CREATE STREAM readings (
 
           <div>
             <h2>Inserting rows</h2>
-            <p>Empty collections aren’t that interesting either. In Kafka, you put a <em>record</em> into a topic. In ksqlDB, you put a <em>row</em> into a stream. A row is just a record with additional metadata. You <em>insert</em> rows like this:</p>
+            <p>Empty collections aren’t terribly interesting. You need to write events to them to make something happen. In Kafka, you model an event as a <em>record</em> and put it into a topic. In ksqlDB, you model an event as a <em>row</em> and put it into a stream. A row is just a record with additional metadata. You <em>insert</em> rows like this:</p>
 
             <pre class="narrative-code"><code class="lang-sql">
 INSERT INTO readings (sensor, location, value) VALUES ('sensor-1', 'usa', 45);
@@ -168,7 +84,7 @@ INSERT INTO readings (sensor, location, value) VALUES ('sensor-7', 'gcr', 41);
 
             <p>Each time you invoke an <code>INSERT</code> statement, a request with the payload is sent to a ksqlDB server. The server checks that the shape of the data is coherent with respect to the stream’s schema—malformed rows are rejected. If the row’s data types are sane, the server creates a record and automatically serializes its content using the format of choice as defined in the stream’s declaration. It uses the Kafka producer client to insert that record into the backing Kafka topic. All of the stream’s data is persisted on directly on the broker. None of it lives in ksqlDB’s servers.</p>
 
-            <p>After the inserts complete, the stream now looks like what you see below. Hover over each row to see its contents—the data displayed describes the underlying Kafka record. Notice how the rows are ordered by offset from right to left. In these animations, time is depicted as flowing rightward.</p>
+            <p>After the inserts complete, the stream now looks like what you see below. Hover over each row to see its contents—the data displayed describes the underlying Kafka record. Notice how the rows are ordered by offset from right to left. In the animations you'll see below, time is depicted as flowing rightward.</p>
             
             <div class="specimen" id="inserts">
             </div>
@@ -182,7 +98,7 @@ INSERT INTO readings (sensor, location, value) VALUES ('sensor-7', 'gcr', 41);
             <h2>Transforming a stream</h2>
             <p>No one ever sends data to Kafka just to let it sit there. You always want to do something with it. And most often, the data isn’t yet in the exact form that you need in order to work with it. You need to change it in some way.</p>
 
-            <p>The most elementary way you could do this is by writing a program that uses the Kafka producer and consumer clients. The program would read from the source topic whose data you want to change, apply a function to each message, and write a new record to the output topic. It would loop and run forever. This works, but it is rather low-level. You need to manage schemas, serializers, partitioning strategies, and other pieces of configuration.</p>
+            <p>The most elementary way you could do this is by writing a program that uses the Kafka producer and consumer clients. The program would read from the source topic whose data you want to change, apply a function to each record, and write the new record to the output topic. It would loop and run forever. This works, but it is rather low-level. You need to manage schemas, serializers, partitioning strategies, and other pieces of configuration.</p>
 
             <p>In ksqlDB, you issue a <em>persistent query</em> to <em>transform</em> one stream into another using its SQL programming model. You derive a new stream from an existing one by selecting and manipulating columns of interest:</p>
 
@@ -202,7 +118,7 @@ CREATE STREAM clean AS
 
             <p>Each time you run a persistent query, ksqlDB’s server compiles the query’s textual representation to a physical execution plan as a Kafka Streams topology. The topology runs as a daemon, reacting to new topic records as soon as they become available. This means that all of the processing work happens on ksqlDB server; no processing work happens on the Kafka brokers. If you run ksqlDB as a cluster, the topology scales horizontally across the nodes by internally using Kafka Streams application IDs.</p>
 
-            <p>When everything is connected together and the data is flowing, it looks like this. Take it in for a few moments—we’ll walk through in detail below.</p>
+            <p>When everything is connected together and the data is flowing, it looks like this. Take it in for a few moments—we’ll walk through it in detail below.</p>
 
             <div class="specimen" id="transformation">
             </div>
@@ -272,7 +188,7 @@ CREATE STREAM by_location AS
     EMIT CHANGES;
             </code></pre>
 
-            <p>When you execute this statement, ksqlDB creates a new persistent query. It continually reads from <code>high_pri</code>, applies any additional logic (none in this case, as it simply selects everything), and writes a new record to <code>by_location</code> with a new key. The value of each key is the content of location. This has the effect of co-locating all rows with the same location in the same partition. This co-location property is essential for stateful operations like streaming join and incremental aggregations.</p>
+            <p>When you execute this statement, ksqlDB creates a new persistent query. It continually reads from <code>high_pri</code>, applies any additional logic (none in this case, as it simply selects everything), and writes a new record to <code>by_location</code> with a new key. The value of each key is the content of <code>location</code>. This has the effect of co-locating all rows with the same <code>location</code> in the same partition. This co-location property is essential for stateful operations like streaming join and incremental aggregations.</p>
 
             <div class="specimen" id="rekeying">
             </div>
@@ -284,7 +200,7 @@ CREATE STREAM by_location AS
             <h2>Processing with multiple consumers</h2>
             <p>One of the most important properties that Kafka offers is the ability for multiple consumers to read from the same topic in a conflict-free manner. Your program can read a series of records and do whatever it likes with them, and so can mine. We don’t need to agree about how to access the data before, during, or after.</p>
 
-            <p>ksqlDB inherits this property. Every persistent query is transparently assigned a group ID, which means that multiple persistent queries can read from the same stream. They are guaranteed to receive the same rows in the same order for each partition. But this also means that when you add nodes to your cluster and scale an individual persistent query across them, they will collectively load balance in the incoming data across them. The work will be shared, and no rows will be dropped or duplicated.</p>
+            <p>ksqlDB inherits this property. Every persistent query is transparently assigned a group ID, which means that multiple persistent queries can read from the same stream. They are guaranteed to receive the same rows in the same order for each partition. But this also means that when you add nodes to your cluster and scale an individual persistent query across them, they will collectively load balance the incoming data across them. The work will be shared, and no rows will be dropped or duplicated.</p>
 
             <p>Below is what it would look like if we added another persistent query (<code>pq3</code>, query omitted for brevity), which reads from the stream <code>high_pri</code>, shared by <code>pq2</code>. The persistent queries do not consume rows in lockstep. If <code>pq3</code> consumes messages more slowly than <code>pq2</code>, it doesn’t inhibit <code>pq2</code> in any way.</p>
 

@@ -47,6 +47,7 @@ function set_pre_width({ pre, code }) {
 }
 
 function set_parent_height(parent, children) {
+  console.log(children);
   const heights = children.map(child => child.pre.offsetHeight);
   const height = Math.max(...heights);
   parent.style.height = `${height}px`;

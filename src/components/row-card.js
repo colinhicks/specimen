@@ -15,12 +15,18 @@ export function build_data(config, styles, computed) {
 }
 
 function show_record_contents(card_id) {
+  // hack: This should be passed from styles,
+  // or we should change the DOM hierarchy to make it unnecessary.
+  // This is the y offset of svg.animation relative to the .specimen container
+  const svgTopOffset = 190;
+  
   return function(event) {
-    const card = document.getElementById(card_id);
+    
+    const card = document.getElementById(card_id);    
 
     card.style.display = "block";
     card.style.left = event.offsetX + 10 + "px";
-    card.style.top = event.offsetY + 10 + "px";
+    card.style.top = event.offsetY + svgTopOffset + 10 + "px";
   };
 }
 
@@ -71,10 +77,11 @@ export function update_card_text(row_card, record) {
 }
 
 export function toggle_visibility(row_card) {
+  console.log(row_card);
   const { id, vars } = row_card;
   const { row_id, viewable } = vars;
 
-  const row = document.getElementById(vars.row_id);
+  const row = document.getElementById(vars.row_id);  
 
   if (viewable) {
     row.onmousemove = show_record_contents(id);
