@@ -16,25 +16,25 @@ const flavors = [
 
 const input_partitions = [
   [
-    { key: "sensor-1", value: { value: 45, location: "usa" }, t: 11 },
-    { key: "sensor-2", value: { value: 41, location: "eth" }, t: 25 },
-    { key: "sensor-1", value: { value: 42, location: "usa" }, t: 34 },
-    { key: "sensor-3", value: { value: 42, location: "gcr" }, t: 42 },
-    { key: "sensor-3", value: { value: 40, location: "gcr" }, t: 45 }
+    { key: "sensor-1", value: { reading: 45, location: "usa" }, t: 11 },
+    { key: "sensor-2", value: { reading: 41, location: "eth" }, t: 25 },
+    { key: "sensor-1", value: { reading: 42, location: "usa" }, t: 34 },
+    { key: "sensor-3", value: { reading: 42, location: "gcr" }, t: 42 },
+    { key: "sensor-3", value: { reading: 40, location: "gcr" }, t: 45 }
   ],
   [
-    { key: "sensor-4", value: { value: 43, location: "eth" }, t: 10 },
-    { key: "sensor-6", value: { value: 43, location: "gcr" }, t: 26 },
-    { key: "sensor-5", value: { value: 41, location: "usa" }, t: 31 },
-    { key: "sensor-5", value: { value: 42, location: "usa" }, t: 43 },
-    { key: "sensor-4", value: { value: 41, location: "eth" }, t: 57 },
+    { key: "sensor-4", value: { reading: 43, location: "eth" }, t: 10 },
+    { key: "sensor-6", value: { reading: 43, location: "gcr" }, t: 26 },
+    { key: "sensor-5", value: { reading: 41, location: "usa" }, t: 31 },
+    { key: "sensor-5", value: { reading: 42, location: "usa" }, t: 43 },
+    { key: "sensor-4", value: { reading: 41, location: "eth" }, t: 57 },
   ],
   [
-    { key: "sensor-7", value: { value: 43, location: "gcr" }, t: 12 },
-    { key: "sensor-8", value: { value: 40, location: "usa" }, t: 22 },
-    { key: "sensor-9", value: { value: 40, location: "eth" }, t: 30 },
-    { key: "sensor-9", value: { value: 44, location: "eth" }, t: 55 },
-    { key: "sensor-7", value: { value: 41, location: "gcr" }, t: 53 }
+    { key: "sensor-7", value: { reading: 43, location: "gcr" }, t: 12 },
+    { key: "sensor-8", value: { reading: 40, location: "usa" }, t: 22 },
+    { key: "sensor-9", value: { reading: 40, location: "eth" }, t: 30 },
+    { key: "sensor-9", value: { reading: 44, location: "eth" }, t: 55 },
+    { key: "sensor-7", value: { reading: 41, location: "gcr" }, t: 53 }
   ]
 ];
 
@@ -154,7 +154,7 @@ function transformation(container) {
     query_text: [
       "CREATE STREAM clean AS",
       "    SELECT sensor,",
-      "           value,",
+      "           reading,",
       "           UCASE(location) AS location",
       "    FROM readings",
       "    EMIT CHANGES;"
@@ -163,7 +163,7 @@ function transformation(container) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         country: value.location.toUpperCase()
       }
 
@@ -229,7 +229,7 @@ function filtering(container) {
     query_text: [
       "CREATE STREAM clean AS",
       "    SELECT sensor,",
-      "           value,",
+      "           reading,",
       "           UCASE(location) AS location",
       "    FROM readings",
       "    EMIT CHANGES;"
@@ -238,7 +238,7 @@ function filtering(container) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         location: value.location.toUpperCase()
       }
 
@@ -267,23 +267,23 @@ function filtering(container) {
     into: "high_readings",
     query_text: [
       "CREATE STREAM high_readings AS",
-      "    SELECT sensor, value, location",
+      "    SELECT sensor, reading, location",
       "    FROM clean",
-      "    WHERE value > 41",
+      "    WHERE reading > 41",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     where: function(context, row) {
-      return row.value.value > 41;
+      return row.value.reading > 41;
     },
   });
 
@@ -340,24 +340,24 @@ function compressed(container) {
     query_text: [
       "CREATE STREAM high_pri AS",
       "    SELECT sensor,",
-      "           value,",
+      "           reading,",
       "           UCASE(location) AS location",
       "    FROM readings",
-      "    WHERE value > 41",
+      "    WHERE reading > 41",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     where: function(context, row) {
-      return row.value.value > 41;
+      return row.value.reading > 41;
     },
     style: {
       fill: function(before_row, after_row) {
@@ -419,24 +419,24 @@ function rekeying(container) {
     query_text: [
       "CREATE STREAM high_pri AS",
       "    SELECT sensor,",
-      "           value,",
+      "           reading,",
       "           UCASE(location) AS location",
       "    FROM readings",
-      "    WHERE value > 41",
+      "    WHERE reading > 41",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     where: function(context, row) {
-      return row.value.value > 41;
+      return row.value.reading > 41;
     },
     style: {
       fill: function(before_row, after_row) {
@@ -470,7 +470,7 @@ function rekeying(container) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         location: value.location.toUpperCase()
       }
 
@@ -536,24 +536,24 @@ function consumers(container) {
     query_text: [
       "CREATE STREAM high_pri AS",
       "    SELECT sensor,",
-      "           value,",
+      "           reading,",
       "           UCASE(location) AS location",
       "    FROM readings",
-      "    WHERE value > 41",
+      "    WHERE reading > 41",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     where: function(context, row) {
-      return row.value.value > 41;
+      return row.value.reading > 41;
     },
     style: {
       fill: function(before_row, after_row) {
@@ -587,7 +587,7 @@ function consumers(container) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         location: value.location.toUpperCase()
       }
 
@@ -615,7 +615,7 @@ function consumers(container) {
     query_text: [
       "CREATE STREAM s1_by_location AS",
       "  SELECT sensor,",
-      "         value,",
+      "         reading,",
       "         UCASE(location) AS location",
       "  FROM s2",
       "  EMIT CHANGES;"
@@ -624,7 +624,7 @@ function consumers(container) {
       const { value } = row;
 
       const v = {
-        value: value.value,
+        reading: value.reading,
         location: value.location.toUpperCase()
       }
 
