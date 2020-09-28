@@ -16,25 +16,25 @@ const flavors = [
 
 const input_partitions = [
   [
-    { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-    { key: "buyer-2", value: { amount: 41, country: "eth" }, t: 25 },
-    { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-    { key: "buyer-3", value: { amount: 42, country: "grc" }, t: 42 },
-    { key: "buyer-3", value: { amount: 40, country: "grc" }, t: 45 }
+    { key: "sensor-1", value: { value: 45, location: "usa" }, t: 11 },
+    { key: "sensor-2", value: { value: 41, location: "eth" }, t: 25 },
+    { key: "sensor-1", value: { value: 42, location: "usa" }, t: 34 },
+    { key: "sensor-3", value: { value: 42, location: "gcr" }, t: 42 },
+    { key: "sensor-3", value: { value: 40, location: "gcr" }, t: 45 }
   ],
   [
-    { key: "buyer-4", value: { amount: 43, country: "eth" }, t: 10 },
-    { key: "buyer-6", value: { amount: 43, country: "grc" }, t: 26 },
-    { key: "buyer-5", value: { amount: 41, country: "usa" }, t: 31 },
-    { key: "buyer-5", value: { amount: 42, country: "usa" }, t: 43 },
-    { key: "buyer-4", value: { amount: 41, country: "eth" }, t: 57 },
+    { key: "sensor-4", value: { value: 43, location: "eth" }, t: 10 },
+    { key: "sensor-6", value: { value: 43, location: "gcr" }, t: 26 },
+    { key: "sensor-5", value: { value: 41, location: "usa" }, t: 31 },
+    { key: "sensor-5", value: { value: 42, location: "usa" }, t: 43 },
+    { key: "sensor-4", value: { value: 41, location: "eth" }, t: 57 },
   ],
   [
-    { key: "buyer-7", value: { amount: 43, country: "grc" }, t: 12 },
-    { key: "buyer-8", value: { amount: 40, country: "usa" }, t: 22 },
-    { key: "buyer-9", value: { amount: 40, country: "eth" }, t: 30 },
-    { key: "buyer-9", value: { amount: 44, country: "eth" }, t: 55 },
-    { key: "buyer-7", value: { amount: 41, country: "grc" }, t: 53 }
+    { key: "sensor-7", value: { value: 43, location: "gcr" }, t: 12 },
+    { key: "sensor-8", value: { value: 40, location: "usa" }, t: 22 },
+    { key: "sensor-9", value: { value: 40, location: "eth" }, t: 30 },
+    { key: "sensor-9", value: { value: 44, location: "eth" }, t: 55 },
+    { key: "sensor-7", value: { value: 41, location: "gcr" }, t: 53 }
   ]
 ];
 
@@ -66,7 +66,7 @@ function stream(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
     partitions: [
       [],
@@ -106,7 +106,7 @@ function inserts(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
     partitions: input_partitions
   });
@@ -142,36 +142,36 @@ function transformation(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
     partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "clean",
     query_text: [
       "CREATE STREAM clean AS",
-      "    SELECT buyer,",
-      "           amount,",
-      "           UCASE(country) AS country",
-      "    FROM orders",
+      "    SELECT sensor,",
+      "           value,",
+      "           UCASE(location) AS location",
+      "    FROM readings",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        country: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     style: {
       fill: function(before_row, after_row) {
-        return flavors[before_row.value.country.hashCode() % flavors.length];
+        return flavors[before_row.value.location.hashCode() % flavors.length];
       }
     }
   });
@@ -192,7 +192,7 @@ function transformation(container) {
 function filtering(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 275,
+    svg_height: 220,
 
     pq_width: 75,
     pq_height: 75,
@@ -217,36 +217,36 @@ function filtering(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
     partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "clean",
     query_text: [
       "CREATE STREAM clean AS",
-      "    SELECT buyer,",
-      "           amount,",
-      "           UCASE(country) AS country",
-      "    FROM orders",
+      "    SELECT sensor,",
+      "           value,",
+      "           UCASE(location) AS location",
+      "    FROM readings",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     style: {
       fill: function(before_row, after_row) {
-        return flavors[before_row.value.country.hashCode() % flavors.length];
+        return flavors[before_row.value.location.hashCode() % flavors.length];
       }
     }
   });
@@ -264,31 +264,31 @@ function filtering(container) {
   s.add_child(["clean"], {
     name: "pq2",
     kind: "persistent_query",
-    into: "big_orders",
+    into: "high_readings",
     query_text: [
-      "CREATE STREAM big_orders AS",
-      "    SELECT buyer, amount, country",
+      "CREATE STREAM high_readings AS",
+      "    SELECT sensor, value, location",
       "    FROM clean",
-      "    WHERE amount > 41",
+      "    WHERE value > 41",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     where: function(context, row) {
-      return row.value.amount > 41;
+      return row.value.value > 41;
     },
   });
 
   s.add_child(["pq2"], {
-    name: "big_orders",
+    name: "high_readings",
     kind: "stream",
     partitions: [
       [],
@@ -303,7 +303,7 @@ function filtering(container) {
 function compressed(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 275,
+    svg_height: 220,
 
     pq_width: 75,
     pq_height: 75,
@@ -328,40 +328,40 @@ function compressed(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
     partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "high_pri",
     query_text: [
       "CREATE STREAM high_pri AS",
-      "    SELECT buyer,",
-      "           amount,",
-      "           UCASE(country) AS country",
-      "    FROM orders",
-      "    WHERE amount > 41",
+      "    SELECT sensor,",
+      "           value,",
+      "           UCASE(location) AS location",
+      "    FROM readings",
+      "    WHERE value > 41",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     where: function(context, row) {
-      return row.value.amount > 41;
+      return row.value.value > 41;
     },
     style: {
       fill: function(before_row, after_row) {
-        return flavors[before_row.value.country.hashCode() % flavors.length];
+        return flavors[before_row.value.location.hashCode() % flavors.length];
       }
     }
   });
@@ -382,7 +382,7 @@ function compressed(container) {
 function rekeying(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 275,
+    svg_height: 220,
 
     pq_width: 75,
     pq_height: 75,
@@ -407,40 +407,40 @@ function rekeying(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
     partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "high_pri",
     query_text: [
       "CREATE STREAM high_pri AS",
-      "    SELECT buyer,",
-      "           amount,",
-      "           UCASE(country) AS country",
-      "    FROM orders",
-      "    WHERE amount > 41",
+      "    SELECT sensor,",
+      "           value,",
+      "           UCASE(location) AS location",
+      "    FROM readings",
+      "    WHERE value > 41",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     where: function(context, row) {
-      return row.value.amount > 41;
+      return row.value.value > 41;
     },
     style: {
       fill: function(before_row, after_row) {
-        return flavors[before_row.value.country.hashCode() % flavors.length];
+        return flavors[before_row.value.location.hashCode() % flavors.length];
       }
     }
   });
@@ -458,31 +458,31 @@ function rekeying(container) {
   s.add_child(["high_pri"], {
     name: "pq2",
     kind: "persistent_query",
-    into: "by_country",
+    into: "by_location",
     query_text: [
-      "CREATE STREAM by_country AS",
+      "CREATE STREAM by_location AS",
       "    SELECT *",
       "    FROM high_pri",
-      "    PARTITION BY country",
+      "    PARTITION BY location",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return before_row.value.country;
+      return before_row.value.location;
     }
   });
 
   s.add_child(["pq2"], {
-    name: "by_country",
+    name: "by_location",
     kind: "stream",
     partitions: [
       [],
@@ -497,7 +497,7 @@ function rekeying(container) {
 function consumers(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 675,
+    svg_height: 575,
 
     pq_width: 75,
     pq_height: 75,
@@ -524,40 +524,40 @@ function consumers(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
     partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "high_pri",
     query_text: [
       "CREATE STREAM high_pri AS",
-      "    SELECT buyer,",
-      "           amount,",
-      "           UCASE(country) AS country",
-      "    FROM orders",
-      "    WHERE amount > 41",
+      "    SELECT sensor,",
+      "           value,",
+      "           UCASE(location) AS location",
+      "    FROM readings",
+      "    WHERE value > 41",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     where: function(context, row) {
-      return row.value.amount > 41;
+      return row.value.value > 41;
     },
     style: {
       fill: function(before_row, after_row) {
-        return flavors[before_row.value.country.hashCode() % flavors.length];
+        return flavors[before_row.value.location.hashCode() % flavors.length];
       }
     }
   });
@@ -575,31 +575,31 @@ function consumers(container) {
   s.add_child(["high_pri"], {
     name: "pq2",
     kind: "persistent_query",
-    into: "by_country",
+    into: "by_location",
     query_text: [
-      "CREATE STREAM by_country AS",
+      "CREATE STREAM by_location AS",
       "    SELECT *",
       "    FROM high_pri",
-      "    PARTITION BY country",
+      "    PARTITION BY location",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return before_row.value.country;
+      return before_row.value.location;
     }
   });
 
   s.add_child(["pq2"], {
-    name: "by_country",
+    name: "by_location",
     kind: "stream",
     partitions: [
       [],
@@ -613,10 +613,10 @@ function consumers(container) {
     kind: "persistent_query",
     into: "by_zone",
     query_text: [
-      "CREATE STREAM s1_by_country AS",
-      "  SELECT buyer,",
-      "         amount,",
-      "          UCASE(country) AS country",
+      "CREATE STREAM s1_by_location AS",
+      "  SELECT sensor,",
+      "         value,",
+      "         UCASE(location) AS location",
       "  FROM s2",
       "  EMIT CHANGES;"
     ],
@@ -624,14 +624,14 @@ function consumers(container) {
       const { value } = row;
 
       const v = {
-        amount: value.amount,
-        country: value.country.toUpperCase()
+        value: value.value,
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
     },
     partition_by: function(context, before_row, after_row) {
-      return (before_row.value.country + " ");
+      return (before_row.value.location + " ");
     }
   });
 

@@ -57,12 +57,47 @@
          margin-top: 40px;
      }
 
+     .specimen .controls {
+         padding-bottom: 10px;
+     }
+
+     .specimen .animation {
+         padding-top: 10px;
+     }
+     
+     .specimen .controls button {
+         display: inline-block;
+         width: 9%;
+         margin-right: 1%;
+     }
+     
+     .specimen .controls input[type="range"] {
+         display: inline-block;
+         width: 90%;
+     }
+
      .specimen .pq-code-container pre {
          padding: 0 !important;
      }
 
      .specimen .controls button {
          margin-right: 5px;
+     }
+
+     .specimen .source-partitions {
+         display: none;
+     }
+
+     #transformation .source-partitions {
+         display: block;
+     }
+
+     #filtering .pq-code-container pre:first-child {
+         left: -20px !important;
+     }
+
+     #filtering .pq-code-container pre:last-child {
+         left: 20px !important;
      }
 
     </style>
@@ -88,12 +123,12 @@
 
             <pre class="narrative-code">
               <code class="lang-sql">
-CREATE STREAM orders (
-    user VARCHAR KEY,
-    country VARCHAR,
-    amount INT
+CREATE STREAM readings (
+    sensor VARCHAR KEY,
+    location VARCHAR,
+    value INT
 ) WITH (
-    kafka_topic = 'orders',
+    kafka_topic = 'readings',
     partitions = 3,
     value_format = 'json'
 );
@@ -112,23 +147,23 @@ CREATE STREAM orders (
             <p>Empty collections aren’t that interesting either. In Kafka, you put a <em>record</em> into a topic. In ksqlDB, you put a <em>row</em> into a stream. A row is just a record with additional metadata. You <em>insert</em> rows like this:</p>
 
             <pre class="narrative-code"><code class="lang-sql">
-INSERT INTO orders (user, country, amount) VALUES ('buyer-1', 'usa', 45);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-2', 'eth', 41);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-1', 'usa', 42);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-3', 'grc', 42);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-3', 'grc', 40);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-1', 'usa', 45);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-2', 'eth', 41);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-1', 'usa', 42);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-3', 'gcr', 42);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-3', 'gcr', 40);
 
-INSERT INTO orders (user, country, amount) VALUES ('buyer-4', 'eth', 43);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-6', 'grc', 43);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-5', 'usa', 41);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-5', 'usa', 42);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-4', 'eth', 41);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-4', 'eth', 43);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-6', 'gcr', 43);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-5', 'usa', 41);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-5', 'usa', 42);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-4', 'eth', 41);
 
-INSERT INTO orders (user, country, amount) VALUES ('buyer-7', 'grc', 43);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-8', 'usa', 40);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-9', 'eth', 40);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-9', 'eth', 44);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-7', 'grc', 41);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-7', 'gcr', 43);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-8', 'usa', 40);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-9', 'eth', 40);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-9', 'eth', 44);
+INSERT INTO readings (sensor, location, value) VALUES ('sensor-7', 'gcr', 41);
             </code></pre>
 
             <p>Each time you invoke an <code>INSERT</code> statement, a request with the payload is sent to a ksqlDB server. The server checks that the shape of the data is coherent with respect to the stream’s schema—malformed rows are rejected. If the row’s data types are sane, the server creates a record and automatically serializes its content using the format of choice as defined in the stream’s declaration. It uses the Kafka producer client to insert that record into the backing Kafka topic. All of the stream’s data is persisted on directly on the broker. None of it lives in ksqlDB’s servers.</p>
@@ -140,7 +175,7 @@ INSERT INTO orders (user, country, amount) VALUES ('buyer-7', 'grc', 41);
 
             <p>Why does some of the row data end up in the key of the record and some in the value? ksqlDB superimposes a flat column abstraction on top of Kafka’s key/value model. Here’s how it works in this case.</p>
 
-            <p>In the declaration of the stream, <code>user</code> is qualified with the <code>KEY</code> keyword. That piece of syntax tells ksqlDB to look for the data for this column in the key portion of the record. The data for other columns is read from the record’s value. When ksqlDB produces the record to the underlying topic, its key content is hashed to select a partition for it to reside in. This causes all rows with the same key to be written to the same partition, which is a useful <a href="https://docs.confluent.io/current/kafka/introduction.html#topics-and-logs">ordering guarantee</a>.</p>
+            <p>In the declaration of the stream, <code>sensor</code> is qualified with the <code>KEY</code> keyword. That piece of syntax tells ksqlDB to look for the data for this column in the key portion of the record. The data for other columns is read from the record’s value. When ksqlDB produces the record to the underlying topic, its key content is hashed to select a partition for it to reside in. This causes all rows with the same key to be written to the same partition, which is a useful <a href="https://docs.confluent.io/current/kafka/introduction.html#topics-and-logs">ordering guarantee</a>.</p>
           </div>    
 
           <div>
@@ -156,14 +191,14 @@ INSERT INTO orders (user, country, amount) VALUES ('buyer-7', 'grc', 41);
 set 'auto.offset.reset' = 'earliest';
                 
 CREATE STREAM clean AS
-    SELECT buyer,
-           amount,
-           UCASE(country) AS country
-    FROM orders
+    SELECT sensor,
+           value,
+           UCASE(location) AS location
+    FROM readings
     EMIT CHANGES;
             </code></pre>
 
-            <p>Persistent queries are little stream processing programs that run indefinitely. In this case, it continually reads rows from <code>orders</code>, applies the transformation logic, and writes rows to <code>clean</code>. You are relieved of all data janitorial work: There are no schemas to manage, no serializers to configure, no partitioning strategies to choose. But what is actually happening when you launch this query?</p>
+            <p>Persistent queries are little stream processing programs that run indefinitely. In this case, it continually reads rows from <code>readings</code>, applies the transformation logic, and writes rows to <code>clean</code>. You are relieved of all data janitorial work: There are no schemas to manage, no serializers to configure, no partitioning strategies to choose. But what is actually happening when you launch this query?</p>
 
             <p>Each time you run a persistent query, ksqlDB’s server compiles the query’s textual representation to a physical execution plan as a Kafka Streams topology. The topology runs as a daemon, reacting to new topic records as soon as they become available. This means that all of the processing work happens on ksqlDB server; no processing work happens on the Kafka brokers. If you run ksqlDB as a cluster, the topology scales horizontally across the nodes by internally using Kafka Streams application IDs.</p>
 
@@ -188,10 +223,10 @@ CREATE STREAM clean AS
             <p>Let’s look at another simple operation: filtering. Filters are used to discard rows that you do not need or want. Just like transforms, filters are specified using simple SQL syntax.</p>
 
             <pre class="narrative-code"><code class="lang-sql">
-CREATE STREAM big_orders AS
-    SELECT buyer, amount, country
+CREATE STREAM high_readings AS
+    SELECT sensor, value, location
     FROM clean
-    WHERE amount > 41
+    WHERE value > 41
     EMIT CHANGES;
             </code></pre>
 
@@ -209,11 +244,11 @@ CREATE STREAM big_orders AS
 
             <pre class="narrative-code"><code class="lang-sql">
 CREATE STREAM high_pri AS
-    SELECT buyer,
-           amount,
-           UCASE(country) AS country
+    SELECT sensor,
+           value,
+           UCASE(location) AS location
     FROM orders
-    WHERE amount > 41
+    WHERE value > 41
     EMIT CHANGES;
             </code></pre>
             
@@ -230,14 +265,14 @@ CREATE STREAM high_pri AS
             <p>In Kafka, partitioning controls data locality. Each partition lives in its entirety on a broker. That is why the choice of how you key your records is such a crucial one. If you use the Kafka clients to process your data, you need to be careful that you’ve set this up right. But in ksqlDB, this is just another SQL clause.</p>
 
             <pre class="narrative-code"><code class="lang-sql">
-CREATE STREAM by_country AS
+CREATE STREAM by_location AS
     SELECT *
     FROM high_pri
-    PARTITION BY country
+    PARTITION BY location
     EMIT CHANGES;
             </code></pre>
 
-            <p>When you execute this statement, ksqlDB creates a new persistent query. It continually reads from <code>high_pri</code>, applies any additional logic (none in this case, as it simply selects everything), and writes a new record to <code>by_country</code> with a new key. The value of each key is the content of country. This has the effect of co-locating all rows with the same country in the same partition. This co-location property is essential for stateful operations like streaming join and incremental aggregations.</p>
+            <p>When you execute this statement, ksqlDB creates a new persistent query. It continually reads from <code>high_pri</code>, applies any additional logic (none in this case, as it simply selects everything), and writes a new record to <code>by_location</code> with a new key. The value of each key is the content of location. This has the effect of co-locating all rows with the same location in the same partition. This co-location property is essential for stateful operations like streaming join and incremental aggregations.</p>
 
             <div class="specimen" id="rekeying">
             </div>
