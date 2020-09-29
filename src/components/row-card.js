@@ -77,7 +77,6 @@ export function update_card_text(row_card, record) {
 }
 
 export function toggle_visibility(row_card) {
-  console.log(row_card);
   const { id, vars } = row_card;
   const { row_id, viewable } = vars;
 

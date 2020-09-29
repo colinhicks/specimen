@@ -112,7 +112,7 @@ function repartition(context, before_row, after_row, partition_by) {
     after_row.vars.record.key = key;
 
     const partitioner = make_partitioner(key);
-    after_row.vars.record.partition = partitioner % context.partitions;
+    after_row.vars.record.partition = Math.abs(partitioner) % context.partitions;
   }
 }
 

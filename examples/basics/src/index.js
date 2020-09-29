@@ -16,25 +16,25 @@ const flavors = [
 
 const input_partitions = [
   [
-    { key: "sensor-1", value: { reading: 45, location: "usa" }, t: 11 },
-    { key: "sensor-2", value: { reading: 41, location: "eth" }, t: 25 },
-    { key: "sensor-1", value: { reading: 42, location: "usa" }, t: 34 },
-    { key: "sensor-3", value: { reading: 42, location: "gcr" }, t: 42 },
-    { key: "sensor-3", value: { reading: 40, location: "gcr" }, t: 45 }
+    { key: "sensor-1", value: { reading: 45, location: "wheel" }, t: 11 },
+    { key: "sensor-2", value: { reading: 41, location: "motor" }, t: 25 },
+    { key: "sensor-1", value: { reading: 42, location: "wheel" }, t: 34 },
+    { key: "sensor-3", value: { reading: 42, location: "muffler" }, t: 42 },
+    { key: "sensor-3", value: { reading: 40, location: "muffler" }, t: 45 }
   ],
   [
-    { key: "sensor-4", value: { reading: 43, location: "eth" }, t: 10 },
-    { key: "sensor-6", value: { reading: 43, location: "gcr" }, t: 26 },
-    { key: "sensor-5", value: { reading: 41, location: "usa" }, t: 31 },
-    { key: "sensor-5", value: { reading: 42, location: "usa" }, t: 43 },
-    { key: "sensor-4", value: { reading: 41, location: "eth" }, t: 57 },
+    { key: "sensor-4", value: { reading: 43, location: "motor" }, t: 10 },
+    { key: "sensor-6", value: { reading: 43, location: "muffler" }, t: 26 },
+    { key: "sensor-5", value: { reading: 41, location: "wheel" }, t: 31 },
+    { key: "sensor-5", value: { reading: 42, location: "wheel" }, t: 43 },
+    { key: "sensor-4", value: { reading: 41, location: "motor" }, t: 57 },
   ],
   [
-    { key: "sensor-7", value: { reading: 43, location: "gcr" }, t: 12 },
-    { key: "sensor-8", value: { reading: 40, location: "usa" }, t: 22 },
-    { key: "sensor-9", value: { reading: 40, location: "eth" }, t: 30 },
-    { key: "sensor-9", value: { reading: 44, location: "eth" }, t: 55 },
-    { key: "sensor-7", value: { reading: 41, location: "gcr" }, t: 53 }
+    { key: "sensor-7", value: { reading: 43, location: "muffler" }, t: 12 },
+    { key: "sensor-8", value: { reading: 40, location: "wheel" }, t: 22 },
+    { key: "sensor-9", value: { reading: 40, location: "motor" }, t: 30 },
+    { key: "sensor-9", value: { reading: 44, location: "motor" }, t: 55 },
+    { key: "sensor-7", value: { reading: 41, location: "muffler" }, t: 53 }
   ]
 ];
 
@@ -490,7 +490,7 @@ function rekeying(container) {
       []
     ]
   });
-  
+
   s.render();
 }
 
