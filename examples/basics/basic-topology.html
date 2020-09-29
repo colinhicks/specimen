@@ -63,23 +63,23 @@ CREATE STREAM readings (
             <p>Empty collections aren’t terribly interesting. You need to write events to them to make something happen. In Kafka, you model an event as a <em>record</em> and put it into a topic. In ksqlDB, you model an event as a <em>row</em> and put it into a stream. A row is just a record with additional metadata. You <em>insert</em> rows like this:</p>
 
             <pre class="narrative-code"><code class="lang-sql">
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-1', 'usa', 45);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-2', 'eth', 41);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-1', 'usa', 42);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-3', 'gcr', 42);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-3', 'gcr', 40);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-1', 'wheel', 45);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-2', 'motor', 41);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-1', 'wheel', 42);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-3', 'muffler', 42);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-3', 'muffler', 40);
 
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-4', 'eth', 43);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-6', 'gcr', 43);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-5', 'usa', 41);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-5', 'usa', 42);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-4', 'eth', 41);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-4', 'motor', 43);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-6', 'muffler', 43);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-5', 'wheel', 41);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-5', 'wheel', 42);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-4', 'motor', 41);
 
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-7', 'gcr', 43);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-8', 'usa', 40);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-9', 'eth', 40);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-9', 'eth', 44);
-INSERT INTO readings (sensor, location, reading) VALUES ('sensor-7', 'gcr', 41);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-7', 'muffler', 43);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-8', 'wheel', 40);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-9', 'motor', 40);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-9', 'motor', 44);
+INSERT INTO readings (sensor, location, reading) VALUES ('sensor-7', 'muffler', 41);
             </code></pre>
 
             <p>Each time you invoke an <code>INSERT</code> statement, a request with the payload is sent to a ksqlDB server. The server checks that the shape of the data is coherent with respect to the stream’s schema—malformed rows are rejected. If the row’s data types are sane, the server creates a record and automatically serializes its content using the format of choice as defined in the stream’s declaration. It uses the Kafka producer client to insert that record into the backing Kafka topic. All of the stream’s data is persisted on directly on the broker. None of it lives in ksqlDB’s servers.</p>
@@ -163,7 +163,7 @@ CREATE STREAM high_pri AS
     SELECT sensor,
            reading,
            UCASE(location) AS location
-    FROM orders
+    FROM readings
     WHERE reading > 41
     EMIT CHANGES;
             </code></pre>
