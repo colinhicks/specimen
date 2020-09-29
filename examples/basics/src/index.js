@@ -467,11 +467,11 @@ function rekeying(container) {
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
-      const { value } = row;
+      const { key, value } = row;
 
       const v = {
         reading: value.reading,
-        location: value.location.toUpperCase()
+        sensor: key
       }
 
       return { ...row, ... { value: v } };
