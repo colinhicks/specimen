@@ -8,20 +8,20 @@ hljs.registerLanguage('sql', ksql);
 hljs.registerLanguage('javascript', hljs_js);
 hljs.initHighlightingOnLoad();
 
-const a_input_partitions = [
+const input_partitions = [
   [
-    { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-    { key: "buyer-2", value: { amount: 41, country: "grc" }, t: 25 },
-    { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-    { key: "buyer-2", value: { amount: 42, country: "grc" }, t: 42 },
-    { key: "buyer-1", value: { amount: 40, country: "grc" }, t: 45 }
+    { key: "sensor-1", value: { reading: 45, area: "wheel" }, t: 10 },
+    { key: "sensor-2", value: { reading: 41, area: "motor" }, t: 25 },
+    { key: "sensor-1", value: { reading: 92, area: "wheel" }, t: 34 },
+    { key: "sensor-2", value: { reading: 13, area: "engine" }, t: 42 },
+    { key: "sensor-2", value: { reading: 90, area: "engine" }, t: 45 }
   ],
   [
-    { key: "buyer-3", value: { amount: 43, country: "grc" }, t: 10 },
-    { key: "buyer-4", value: { amount: 43, country: "grc" }, t: 26 },
-    { key: "buyer-4", value: { amount: 41, country: "usa" }, t: 31 },
-    { key: "buyer-3", value: { amount: 42, country: "usa" }, t: 43 },
-    { key: "buyer-3", value: { amount: 41, country: "usa" }, t: 57 },
+    { key: "sensor-4", value: { reading: 95, area: "motor" }, t: 11 },
+    { key: "sensor-3", value: { reading: 67, area: "engine" }, t: 26 },
+    { key: "sensor-3", value: { reading: 52, area: "wheel" }, t: 31 },
+    { key: "sensor-4", value: { reading: 55, area: "engine" }, t: 43 },
+    { key: "sensor-3", value: { reading: 37, area: "engine" }, t: 57 },
   ]
 ];
 
@@ -57,29 +57,32 @@ function materialized_view(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
-    partitions: a_input_partitions
+    partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "changelog",
     query_text: [
-      "CREATE STREAM total_orders AS",
-      "    SELECT buyer,",
-      "           SUM(amount) AS total",
-      "    FROM orders",
-      "    GROUP BY buyer",
+      "CREATE TABLE avg_readings AS",
+      "    SELECT sensor,",
+      "           AVG(reading) AS avg",
+      "    FROM readings",
+      "    GROUP BY sensor",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { delta } = context;
       const { key, value } = row;
 
+      const agg = delta[key];
+      const avg = agg.sum / agg.n;
+
       const v = {
-        count: delta[key]
+        avg: avg
       }
 
       return { ...row, ... { value: v } };
@@ -91,23 +94,25 @@ function materialized_view(container) {
       },
       delta: function(state, row) {
         const { key } = row;
-        const before = state[key] || 0;
-        const after = before + row.value.amount;
+        const before = state[key] || { n: 0, sum: 0 };
+
+        before.n++;
+        before.sum += row.value.reading;
 
         return {
-          [key] : after
+          [key] : before
         };
       },
       columns: [
         {
-          name: "buyer",
+          name: "sensor",
           width: 11,
           lookup: (row) => row.key
         },
         {
-          name: "total",
+          name: "avg",
           width: 11,
-          lookup: (row) => row.value.count
+          lookup: (row) => row.value.avg
         }
       ]
     },
@@ -131,29 +136,12 @@ function materialized_view(container) {
   s.render();
 }
 
-const b_input_partitions = [
-  [
-    { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11, style: { fill: "#F26135" }},
-    { key: "buyer-2", value: { amount: 41, country: "grc" }, t: 25, style: { fill: "#FFC40C" }},
-    { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34, style: { fill: "#F26135" }},
-    { key: "buyer-2", value: { amount: 42, country: "grc" }, t: 42, style: { fill: "#FFC40C" }},
-    { key: "buyer-1", value: { amount: 40, country: "grc" }, t: 45, style: { fill: "#FFC40C" }}
-  ],
-  [
-    { key: "buyer-3", value: { amount: 43, country: "grc" }, t: 10, style: { fill: "#FFC40C" }},
-    { key: "buyer-4", value: { amount: 43, country: "grc" }, t: 26, style: { fill: "#FFC40C" }},
-    { key: "buyer-4", value: { amount: 41, country: "usa" }, t: 31, style: { fill: "#F26135" }},
-    { key: "buyer-3", value: { amount: 42, country: "usa" }, t: 43, style: { fill: "#F26135" }},
-    { key: "buyer-3", value: { amount: 41, country: "usa" }, t: 57, style: { fill: "#F26135" }},
-  ]
-];
-
 function repartitioning(container) {
   const styles = {
     svg_width: 750,
-    svg_height: 275,
+    svg_height: 300,
 
-    pq_width: 100,
+    pq_width: 110,
     pq_height: 75,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -180,12 +168,12 @@ function repartitioning(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
-    partitions: b_input_partitions
+    partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "repart",
@@ -196,7 +184,7 @@ function repartitioning(container) {
       return row;
     },
     partition_by: function(context, before_row, after_row) {
-      return before_row.value.country;
+      return before_row.value.area;
     }
   });
 
@@ -214,22 +202,30 @@ function repartitioning(container) {
     kind: "persistent_query",
     into: "changelog",
     query_text: [
-      "CREATE STREAM total_orders AS",
-      "    SELECT buyer,",
-      "           SUM(amount) AS total",
-      "    FROM orders",
-      "    GROUP BY buyer",
+      "CREATE TABLE avg_readings AS",
+      "    SELECT area,",
+      "           AVG(reading) AS avg",
+      "    FROM readings",
+      "    GROUP BY area",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { delta } = context;
       const { key, value } = row;
 
-      const v = {
-        count: delta[key]
-      }
+      const agg = delta[key];
+      const avg = agg.sum / agg.n;
 
-      return { ...row, ... { value: v } };
+      const k = value.area;
+
+      const v = {
+        avg: avg
+      };
+
+      return { ...row, ... { key: k, value: v } };
+    },
+    partition_by: function(context, before_row, after_row) {
+      return before_row.value.area;
     },
     aggregate: {
       init: function() {
@@ -238,28 +234,30 @@ function repartitioning(container) {
       },
       delta: function(state, row) {
         const { key } = row;
-        const before = state[key] || 0;
-        const after = before + row.value.amount;
+        const before = state[key] || { n: 0, sum: 0 };
+
+        before.n++;
+        before.sum += row.value.reading;
 
         return {
-          [key] : after
+          [key] : before
         };
       },
       columns: [
         {
-          name: "buyer",
-          width: 5,
+          name: "area",
+          width: 6,
           lookup: (row) => row.key
         },
         {
-          name: "total",
+          name: "avg",
           width: 5,
-          lookup: (row) => row.value.count
+          lookup: (row) => row.value.avg
         }
       ]
     },
     style: {
-      materialized_view_height: 80,
+      materialized_view_height: 95,
       fill: function(before_row, after_row) {
         return "#66CC69";
       }
@@ -278,29 +276,12 @@ function repartitioning(container) {
   s.render();
 }
 
-const c_input_partitions = [
-  [
-    { key: "grc", value: { count: 43 }, t: 10, style: { fill: "#66CC69" } },
-    { key: "grc", value: { count: 84 }, t: 25, style: { fill: "#66CC69" } },
-    { key: "grc", value: { count: 127 }, t: 26, style: { fill: "#66CC69" } },
-    { key: "grc", value: { count: 169 }, t: 42, style: { fill: "#66CC69" } },
-    { key: "grc", value: { count: 209 }, t: 45, style: { fill: "#66CC69" } },
-  ],
-  [
-    { key: "usa", value: { count: 45 }, t: 11, style: { fill: "#66CC69" } },
-    { key: "usa", value: { count: 86 }, t: 31, style: { fill: "#66CC69" } },
-    { key: "usa", value: { count: 128 }, t: 34, style: { fill: "#66CC69" } },
-    { key: "usa", value: { count: 170 }, t: 43, style: { fill: "#66CC69" } },
-    { key: "usa", value: { count: 211 }, t: 57, style: { fill: "#66CC69" } },
-  ]
-];
-
 function replaying_from_changelog(container) {
   const styles = {
     svg_width: 400,
-    svg_height: 275,
+    svg_height: 300,
 
-    pq_width: 110,
+    pq_width: 130,
     pq_height: 75,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -324,21 +305,38 @@ function replaying_from_changelog(container) {
 
   const s = new Specimen(container, styles);
 
+  const replay_partitions = [
+    [
+      { key: "engine", value: { avg: 67    }, t: 26, style: { fill: "#66CC69" } },
+      { key: "engine", value: { avg: 40    }, t: 42, style: { fill: "#66CC69" } },
+      { key: "engine", value: { avg: 45    }, t: 43, style: { fill: "#66CC69" } },
+      { key: "engine", value: { avg: 56.25 }, t: 45, style: { fill: "#66CC69" } },
+      { key: "engine", value: { avg: 52.4  }, t: 57, style: { fill: "#66CC69" } },
+    ],
+    [
+      { key: "wheel", value: { avg: 45   }, t: 10, style: { fill: "#66CC69" } },
+      { key: "motor", value: { avg: 95   }, t: 11, style: { fill: "#66CC69" } },
+      { key: "motor", value: { avg: 68   }, t: 25, style: { fill: "#66CC69" } },
+      { key: "wheel", value: { avg: 48.5 }, t: 31, style: { fill: "#66CC69" } },
+      { key: "wheel", value: { avg: 63   }, t: 34, style: { fill: "#66CC69" } },
+    ]
+  ];
+
   s.add_root({
     name: "changelog",
     kind: "stream",
-    partitions: c_input_partitions
+    partitions: replay_partitions
   });
 
   s.add_child(["changelog"], {
     name: "pq1",
     kind: "persistent_query",
     query_text: [
-      "CREATE STREAM total_orders AS",
-      "    SELECT buyer,",
-      "           SUM(amount) AS total",
-      "    FROM orders",
-      "    GROUP BY buyer",
+      "CREATE TABLE avg_readings AS",
+      "    SELECT area,",
+      "           AVG(reading) AS avg",
+      "    FROM readings",
+      "    GROUP BY area",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
@@ -351,8 +349,7 @@ function replaying_from_changelog(container) {
       },
       delta: function(state, row) {
         const { key } = row;
-        const before = state[key] || 0;
-        const after = before + row.value.amount;
+        const after = row.value.avg;
 
         return {
           [key] : after
@@ -360,19 +357,19 @@ function replaying_from_changelog(container) {
       },
       columns: [
         {
-          name: "buyer",
-          width: 6,
+          name: "area",
+          width: 8,
           lookup: (row) => row.key
         },
         {
-          name: "total",
+          name: "avg",
           width: 5,
-          lookup: (row) => row.value.count
+          lookup: (row) => row.value.avg
         }
       ]
     },
     style: {
-      materialized_view_height: 80,
+      materialized_view_height: 95,
       fill: function(before_row, after_row) {
         return "#66CC69";
       }
@@ -381,30 +378,13 @@ function replaying_from_changelog(container) {
 
   s.render();
 }
-
-const e_input_partitions = [
-  [
-    { key: "grc", value: { count: 43 }, t: 10, style: { fill: "#66CC69" } },
-    { key: "eth", value: { count: 84 }, t: 25, style: { fill: "#66CC69" } },
-    { key: "aut", value: { count: 127 }, t: 26, style: { fill: "#66CC69" } },
-    { key: "grc", value: { count: 169 }, t: 42, style: { fill: "#66CC69" } },
-    { key: "bol", value: { count: 209 }, t: 45, style: { fill: "#66CC69" } },
-  ],
-  [
-    { key: "cmr", value: { count: 45 }, t: 11, style: { fill: "#66CC69" } },
-    { key: "sgp", value: { count: 86 }, t: 31, style: { fill: "#66CC69" } },
-    { key: "usa", value: { count: 128 }, t: 34, style: { fill: "#66CC69" } },
-    { key: "col", value: { count: 170 }, t: 43, style: { fill: "#66CC69" } },
-    { key: "srb", value: { count: 211 }, t: 57, style: { fill: "#66CC69" } },
-  ]
-];
 
 function replaying_from_compacted(container) {
   const styles = {
     svg_width: 400,
-    svg_height: 375,
+    svg_height: 400,
 
-    pq_width: 110,
+    pq_width: 165,
     pq_height: 75,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -428,21 +408,38 @@ function replaying_from_compacted(container) {
 
   const s = new Specimen(container, styles);
 
+  const compacted_partitions = [
+    [
+      { key: "engine", value:  { avg: 52.4 }, t: 57, style: { fill: "#66CC69" } },
+      { key: "motor", value:   { avg: 68 }, t: 25, style: { fill: "#66CC69" } },
+      { key: "wheel", value:   { avg: 63 }, t: 63, style: { fill: "#66CC69" } },
+      { key: "brakes", value:  { avg: 14 }, t: 42, style: { fill: "#66CC69" } },
+      { key: "windows", value: { avg: 700 }, t: 45, style: { fill: "#66CC69" } },
+    ],
+    [
+      { key: "axle", value:       { avg: 124 }, t: 11, style: { fill: "#66CC69" } },
+      { key: "compressor", value: { avg: 90.5 }, t: 31, style: { fill: "#66CC69" } },
+      { key: "alternator", value: { avg: 84.22 }, t: 34, style: { fill: "#66CC69" } },
+      { key: "frame", value:      { avg: 170.31 }, t: 43, style: { fill: "#66CC69" } },
+      { key: "pump", value:       { avg: 900 }, t: 57, style: { fill: "#66CC69" } },
+    ]
+  ];
+
   s.add_root({
     name: "changelog",
     kind: "stream",
-    partitions: e_input_partitions
+    partitions: compacted_partitions
   });
 
   s.add_child(["changelog"], {
     name: "pq1",
     kind: "persistent_query",
     query_text: [
-      "CREATE STREAM total_orders AS",
-      "    SELECT buyer,",
-      "           SUM(amount) AS total",
-      "    FROM orders",
-      "    GROUP BY buyer",
+      "CREATE TABLE avg_readings AS",
+      "    SELECT area,",
+      "           AVG(reading) AS avg",
+      "    FROM readings",
+      "    GROUP BY area",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
@@ -455,8 +452,7 @@ function replaying_from_compacted(container) {
       },
       delta: function(state, row) {
         const { key } = row;
-        const before = state[key] || 0;
-        const after = before + row.value.amount;
+        const after = row.value.avg;
 
         return {
           [key] : after
@@ -464,19 +460,19 @@ function replaying_from_compacted(container) {
       },
       columns: [
         {
-          name: "buyer",
-          width: 6,
+          name: "area",
+          width: 11,
           lookup: (row) => row.key
         },
         {
-          name: "total",
-          width: 5,
-          lookup: (row) => row.value.count
+          name: "avg",
+          width: 7,
+          lookup: (row) => row.value.avg
         }
       ]
     },
     style: {
-      materialized_view_height: 185,
+      materialized_view_height: 200,
       fill: function(before_row, after_row) {
         return "#66CC69";
       }
@@ -485,23 +481,6 @@ function replaying_from_compacted(container) {
 
   s.render();
 }
-
-const d_input_partitions = [
-  [
-    { key: "buyer-1", value: { amount: 45, country: "usa" }, t: 11 },
-    { key: "buyer-2", value: { amount: 41, country: "grc" }, t: 25 },
-    { key: "buyer-1", value: { amount: 42, country: "usa" }, t: 34 },
-    { key: "buyer-2", value: { amount: 42, country: "grc" }, t: 42 },
-    { key: "buyer-1", value: { amount: 40, country: "grc" }, t: 45 }
-  ],
-  [
-    { key: "buyer-3", value: { amount: 43, country: "grc" }, t: 10 },
-    { key: "buyer-4", value: { amount: 43, country: "grc" }, t: 26 },
-    { key: "buyer-4", value: { amount: 41, country: "usa" }, t: 31 },
-    { key: "buyer-3", value: { amount: 42, country: "usa" }, t: 43 },
-    { key: "buyer-3", value: { amount: 41, country: "usa" }, t: 57 },
-  ]
-];
 
 function latest(container) {
   const styles = {
@@ -535,30 +514,28 @@ function latest(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
-    partitions: d_input_partitions
+    partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "changelog",
     query_text: [
-      "CREATE STREAM total_orders AS",
-      "    SELECT buyer,",
-      "           LATEST_BY_OFFSET(amount) AS last_tx",
-      "    FROM orders",
-      "    GROUP BY buyer",
+      "CREATE TABLE latest_readings AS",
+      "    SELECT sensor,",
+      "           LATEST_BY_OFFSET(reading) AS last",
+      "    FROM readings",
+      "    GROUP BY sensor",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { delta } = context;
       const { key, value } = row;
 
-      const v = {
-        last_tx: delta[key]
-      }
+      const v = delta[key];
 
       return { ...row, ... { value: v } };
     },
@@ -571,19 +548,21 @@ function latest(container) {
         const { key } = row;
 
         return {
-          [key] : row.value.amount
+          [key] : {
+            last: row.value.reading
+          }
         };
       },
       columns: [
         {
-          name: "buyer",
+          name: "sensor",
           width: 11,
           lookup: (row) => row.key
         },
         {
-          name: "last_tx",
+          name: "last",
           width: 11,
-          lookup: (row) => row.value.last_tx
+          lookup: (row) => row.value.last
         }
       ]
     },
@@ -612,7 +591,7 @@ function chained(container) {
     svg_width: 750,
     svg_height: 300,
 
-    pq_width: 110,
+    pq_width: 145,
     pq_height: 75,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -639,30 +618,28 @@ function chained(container) {
   const s = new Specimen(container, styles);
 
   s.add_root({
-    name: "orders",
+    name: "readings",
     kind: "stream",
-    partitions: d_input_partitions
+    partitions: input_partitions
   });
 
-  s.add_child(["orders"], {
+  s.add_child(["readings"], {
     name: "pq1",
     kind: "persistent_query",
     into: "changelog-1",
     query_text: [
-      "CREATE STREAM total_orders AS",
-      "    SELECT buyer,",
-      "           LATEST_BY_OFFSET(amount) AS last",
-      "    FROM orders",
-      "    GROUP BY buyer",
+      "CREATE TABLE latest_readings AS",
+      "    SELECT sensor,",
+      "           LATEST_BY_OFFSET(reading) AS last",
+      "    FROM readings",
+      "    GROUP BY sensor",
       "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { delta } = context;
       const { key, value } = row;
 
-      const v = {
-        last: delta[key]
-      }
+      const v = delta[key];
 
       return { ...row, ... { value: v } };
     },
@@ -675,18 +652,20 @@ function chained(container) {
         const { key } = row;
 
         return {
-          [key] : row.value.amount
+          [key] : {
+            last: row.value.reading
+          }
         };
       },
       columns: [
         {
-          name: "buyer",
-          width: 7,
+          name: "sensor",
+          width: 10,
           lookup: (row) => row.key
         },
         {
           name: "last",
-          width: 4,
+          width: 5,
           lookup: (row) => row.value.last
         }
       ]
@@ -713,7 +692,12 @@ function chained(container) {
     kind: "persistent_query",
     into: "changelog-2",
     query_text: [
-      "?"
+      "CREATE TABLE identical_readings AS",
+      "    SELECT sensor,",
+      "           COUNT(reading) as n",
+      "    FROM readings",
+      "    GROUP BY sensor",
+      "    EMIT CHANGES;"
     ],
     select: function(context, row) {
       const { delta } = context;
@@ -741,13 +725,13 @@ function chained(container) {
       },
       columns: [
         {
-          name: "buyer",
-          width: 7,
+          name: "sensor",
+          width: 10,
           lookup: (row) => row.key
         },
         {
-          name: "txs",
-          width: 4,
+          name: "n",
+          width: 5,
           lookup: (row) => row.value.count
         }
       ]

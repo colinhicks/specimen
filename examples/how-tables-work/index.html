@@ -13,7 +13,7 @@
 
     <p>All around the world, companies are in chorus asking the same question: what is happening <em>right now</em>? We are inundated with pieces of data that have a fragment of the answer. But by the time we have assembled them into one clear view, the answer often no longer matters. It is too late.</p>
 
-    <p>Stateful stream processing is the way to beat the clock. It’s a programming paradigm that can materialize views of data in real-time. What does that mean? You ask questions whose answer is incrementally updated as new information arrives, meaning your queries will always be fast.</p>
+    <p>Stateful stream processing is the way to beat the clock. It’s a programming paradigm that can materialize views of data in real-time. What does that mean? You ask questions whose answers are incrementally updated as new information arrives, meaning your queries will always be fast.</p>
 
     <p><a href="https://ksqldb.io/">ksqlDB</a>, the event streaming database, makes it easy to build real-time materialized views over Kafka. But how does it work? In <a href="https://www.confluent.io/blog/how-real-time-stream-processing-works-with-ksqldb/">part 1</a> of this series, we looked at how stateless operations work. The subject of this post is stateful ones. If you like, you can follow along by executing the example code yourself. <a href="https://ksqldb.io/quickstart.html">ksqlDB's quickstart</a> makes it easy to get up and running.</p>
 
@@ -26,13 +26,14 @@
 
       <pre class="narrative-code">
         <code class="lang-sql">
-CREATE STREAM orders (
-    user VARCHAR KEY,
-    country VARCHAR,
-    amount INT
+
+CREATE STREAM readings (
+    sensor VARCHAR KEY,
+    area VARCHAR,
+    reading INT
 ) WITH (
-    kafka_topic = 'orders',
-    partitions = 3,
+    kafka_topic = 'readings',
+    partitions = 2,
     value_format = 'json'
 );
         </code>
@@ -41,28 +42,38 @@ CREATE STREAM orders (
       <p>Whose events looked like:</p>
 
       <pre class="narrative-code"><code class="lang-sql">
-INSERT INTO orders (user, country, amount) VALUES ('buyer-1', 'usa', 45);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-2', 'eth', 41);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-1', 'usa', 42);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-3', 'grc', 42);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-3', 'grc', 40);
 
-INSERT INTO orders (user, country, amount) VALUES ('buyer-4', 'eth', 43);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-6', 'grc', 43);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-5', 'usa', 41);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-5', 'usa', 42);
-INSERT INTO orders (user, country, amount) VALUES ('buyer-4', 'eth', 41);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-1', 'wheel', 45);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-2', 'motor', 41);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-1', 'wheel', 42);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-3', 'muffler', 42);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-3', 'muffler', 40);
+
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-4', 'motor', 43);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-6', 'muffler', 43);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-5', 'wheel', 41);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-5', 'wheel', 42);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-4', 'motor', 41);
+
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-7', 'muffler', 43);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-8', 'wheel', 40);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-9', 'motor', 40);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-9', 'motor', 44);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-7', 'muffler', 41);
       </code></pre>
 
       <p>You might want to frequently check the current average of each sensor.  You can do that by materializing a view of the stream:</p>
 
       <pre class="narrative-code">
         <code class="lang-sql">
-CREATE STREAM clean AS
-    SELECT buyer,
-           amount,
-           UCASE(country) AS country
-    FROM orders
+-- process from the beginning of each stream
+SET 'auto.offset.reset' = 'earliest';
+
+CREATE TABLE avg_readings AS
+    SELECT sensor,
+           AVG(reading) AS avg
+    FROM readings
+    GROUP BY sensor
     EMIT CHANGES;
         </code>
       </pre>
@@ -73,7 +84,7 @@ CREATE STREAM clean AS
 
       <p>Pause the animation at any point and note the relationship between the materialized view (yellow box) and the changelog, hovering over the rows in the changelog to see their contents. The current values in the materialized views are the <em>latest</em> values per key in the changelog.</p>
 
-      <p>A materialized view is only as good as the queries it serves, and ksqlDB gives you two ways to do it: push and pull queries. Both are issued by client programs to bring materialized view data into applications. Pull queries retrieve results at a point-in-time (namely “now”). If you run a query such as <code>SELECT * FROM t1 WHERE k1='s1';</code>, the result will be whatever is in the materialized view when it is run. You can explore what that pull query would return by sliding around the progress bar of the animation. By contrast, push queries stream a subscription of changes of the query result to the client as they occur. If you run <code>SELECT * FROM t1 WHERE k1='s1' EMIT CHANGES;</code>, each of the rows in the changelog with key <code>s1</code> will be continuously streamed to your application.</p>
+      <p>A materialized view is only as good as the queries it serves, and ksqlDB gives you two ways to do it: push and pull queries. Both are issued by client programs to bring materialized view data into applications. Pull queries retrieve results at a point-in-time (namely “now”). If you run a query such as <code>SELECT * FROM t1 WHERE k1='s1';</code>, the result will be whatever is in the materialized view when it is run. You can explore what that pull query would return by sliding around the progress bar of the animation and inspecting the table below. By contrast, push queries stream a subscription of changes of the query result to the client as they occur. If you run <code>SELECT * FROM t1 WHERE k1='s1' EMIT CHANGES;</code>, each of the rows in the changelog with key <code>s1</code> will be continuously streamed to your application.</p>
     </div>
 
     <p>Beyond the programming abstraction, what is actually going on under the hood? When ksqlDB begins executing the persistent query, it leverages RocksDB to store the materialized view locally on its disk. RocksDB is an embedded key/value store that runs in-process in each ksqlDB server—you do not need to start, manage or interact with it. RocksDB is used to store the materialized view because it takes care of all the details of storing and indexing an associative data structure on disk with high performance.</p>
@@ -86,7 +97,7 @@ CREATE STREAM clean AS
 
       <div id="repartitioning" style="width: 750px;"></div>
 
-      <p>In distributed systems, the process of reorganizing data locality is known as <em>shuffling</em>. Kafka Streams, ksqlDB’s underlying execution, uses Kafka topics to shuffle intermediate data. These implementation-level topics are usually named <code>*-repartition</code> and are created, managed, and purged on your behalf. Repartition topics have the same number of partitions as their source topics. When records are shuffled across partitions, the overall order of data from each original partition is no longer guaranteed. This is important to consider when you initially load data into Kafka. In general, it is always wise to avoid a shuffle in any system if you can, since there is inherent computational work involved.</p>
+      <p>In distributed systems, the process of reorganizing data locality is known as <em>shuffling</em>. Kafka Streams, ksqlDB’s underlying execution, uses Kafka topics to shuffle intermediate data. These implementation-level topics are usually named <code>*-repartition</code> and are created, managed, and purged on your behalf. Repartition topics have the same number of partitions as their source topics. When records are shuffled across partitions, the overall order of data from each original partition is no longer guaranteed. This is important to consider when you initially load data into Kafka. In general, it is always wise to avoid a shuffle in any system if you can, since there is inherent I/O involved.</p>
 
       <p>If your data is already partitioned according to the <code>GROUP BY</code> criteria, the repartitioning is skipped. This is one of the huge advantages of ksqlDB’s strong type system on top of Kafka. Optimizations can be inferred from the schema of your data, and unnecessary IO can be transparently omitted. You don’t need to remember to do these things, they simply happen for you.</p>
     </div>
