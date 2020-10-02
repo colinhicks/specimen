@@ -42,24 +42,17 @@ CREATE STREAM readings (
       <p>Whose events looked like:</p>
 
       <pre class="narrative-code"><code class="lang-sql">
-
 INSERT INTO readings (sensor, area, reading) VALUES ('sensor-1', 'wheel', 45);
 INSERT INTO readings (sensor, area, reading) VALUES ('sensor-2', 'motor', 41);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-1', 'wheel', 42);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-3', 'muffler', 42);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-3', 'muffler', 40);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-1', 'wheel', 92);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-2', 'engine', 13);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-2', 'engine', 90);
 
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-4', 'motor', 43);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-6', 'muffler', 43);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-5', 'wheel', 41);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-5', 'wheel', 42);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-4', 'motor', 41);
-
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-7', 'muffler', 43);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-8', 'wheel', 40);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-9', 'motor', 40);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-9', 'motor', 44);
-INSERT INTO readings (sensor, area, reading) VALUES ('sensor-7', 'muffler', 41);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-4', 'motor', 95);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-3', 'engine', 67);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-3', 'wheel', 52);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-4', 'engine', 55);
+INSERT INTO readings (sensor, area, reading) VALUES ('sensor-3', 'engine', 37);
       </code></pre>
 
       <p>You might want to frequently check the current average of each sensor.  You can do that by materializing a view of the stream:</p>

@@ -202,7 +202,7 @@ function repartitioning(container) {
     kind: "persistent_query",
     into: "changelog",
     query_text: [
-      "CREATE TABLE avg_readings AS",
+      "CREATE TABLE part_avg AS",
       "    SELECT area,",
       "           AVG(reading) AS avg",
       "    FROM readings",
@@ -332,7 +332,7 @@ function replaying_from_changelog(container) {
     name: "pq1",
     kind: "persistent_query",
     query_text: [
-      "CREATE TABLE avg_readings AS",
+      "CREATE TABLE part_avg AS",
       "    SELECT area,",
       "           AVG(reading) AS avg",
       "    FROM readings",
@@ -435,7 +435,7 @@ function replaying_from_compacted(container) {
     name: "pq1",
     kind: "persistent_query",
     query_text: [
-      "CREATE TABLE avg_readings AS",
+      "CREATE TABLE part_avg AS",
       "    SELECT area,",
       "           AVG(reading) AS avg",
       "    FROM readings",
@@ -630,7 +630,8 @@ function chained(container) {
     query_text: [
       "CREATE TABLE latest_readings AS",
       "    SELECT sensor,",
-      "           LATEST_BY_OFFSET(reading) AS last",
+      "           LATEST_BY_OFFSET(reading)",
+      "              AS last",
       "    FROM readings",
       "    GROUP BY sensor",
       "    EMIT CHANGES;"
@@ -692,10 +693,10 @@ function chained(container) {
     kind: "persistent_query",
     into: "changelog-2",
     query_text: [
-      "CREATE TABLE identical_readings AS",
+      "CREATE TABLE n_readings AS",
       "    SELECT sensor,",
-      "           COUNT(reading) as n",
-      "    FROM readings",
+      "           COUNT(last) as n",
+      "    FROM latest_readings",
       "    GROUP BY sensor",
       "    EMIT CHANGES;"
     ],
