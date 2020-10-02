@@ -141,7 +141,7 @@ function repartitioning(container) {
     svg_width: 750,
     svg_height: 300,
 
-    pq_width: 110,
+    pq_width: 120,
     pq_height: 75,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
