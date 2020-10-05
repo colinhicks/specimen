@@ -162,6 +162,7 @@ export function undo_row(mv, key, table_row) {
 
   if (table_row) {
     d_row.textContent = make_row(columns, table_row.data);
+    row_index[key] = table_row;
   } else {
     row_index[key] = undefined;
     vars.next_row_y -= mv_row_height;

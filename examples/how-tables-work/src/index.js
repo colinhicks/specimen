@@ -96,11 +96,11 @@ function materialized_view(container) {
         const { key } = row;
         const before = state[key] || { n: 0, sum: 0 };
 
-        before.n++;
-        before.sum += row.value.reading;
-
         return {
-          [key] : before
+          [key] : {
+            n: before.n + 1,
+            sum: before.sum + row.value.reading
+          }
         };
       },
       columns: [

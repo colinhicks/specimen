@@ -299,12 +299,16 @@ Specimen.prototype.render = function() {
 
 function rewind_callbacks(anim, anime_callbacks) {
   const anime_t = anim.currentTime;
+  const n = anime_callbacks.cbs.length;
   
-  if (anime_callbacks.index >= anime_callbacks.cbs.length) {
-    anime_callbacks.index = anime_callbacks.cbs.length - 1;
+  if ((anime_callbacks.index >= n) &&
+      (anime_callbacks.cbs[n - 1].t >= anime_t)) {
+    anime_callbacks.index = n - 1;
   }
 
-  while ((anime_callbacks.index >= 0) && anime_callbacks.cbs[anime_callbacks.index].t >= anime_t) {
+  while ((anime_callbacks.index >= 0) &&
+         (anime_callbacks.index < n) &&
+         (anime_callbacks.cbs[anime_callbacks.index].t >= anime_t)) {
     anime_callbacks.cbs[anime_callbacks.index].undo();
     anime_callbacks.index--;
   }
