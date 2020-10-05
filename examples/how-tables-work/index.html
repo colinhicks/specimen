@@ -129,22 +129,6 @@ CREATE TABLE avg_readings AS
     </div>
 
     <div>
-      <h2>Chaining materialized views</h2>
-
-      <p>Changelogs are the foundation for both fault recovery and streaming query results, but also they play another key role: they make materialized views composable. A materialized view can be derived from another materialized view, ad infinitum (theoretically). This works similarly to how a materialized view is built off a stream, with one key difference.</p>
-
-      <p>When a materialized view is constructed over a stream, it is materializing state over a series of facts. But when a materialized view is derived from another materialized view, it is built off of the changelog of the latter. Instead of a series of facts, a changelog is more like a restatement of facts over time. Because a changelog represents the ongoing changes to a materialized view, facts are effectively retracted before they are asserted again. That is why aggregations that operate over ksqlDB tables have an <code>undo</code> method. They need to be able to retract facts that are no longer true for each key before they are reasserted.</p>
-
-      <div id="chained" style="width: 750px;"></div>
-
-      <p>Chaining materialized views yields a decisive performance advantage. If you have one materialization that is expensive to compute, you can move less expensive materializations that build on it downstream to amortize its cost. This composability allows you to make trade-offs between storage and compute.</p>
-
-      <p>This creates one final problem, though. If a chained materialized view (<code>mv2</code>) is built off of the changelog of another materialized view (<code>mv1</code>), then <code>mv2</code> is actually reading from a compacted topic. Compacted topics periodically expunge old records per key. That means that if <code>mv2</code> goes offline for a while and comes back, data that it might be interested in will have already been compacted. How do you escape this bind?</p>
-
-      <p>Like any piece of software, you make an informed trade-off. Kafka exposes a topic-level configuration called <a href="https://docs.confluent.io/current/installation/configuration/topic-configs.html#min.compaction.lag.ms">min compaction lag</a>. This parameter bounds how frequently compaction runs and allows you to trade-off how long your replay times will be versus how much history you want to preserve.</p>
-    </div>
-
-    <div>
       <h2>Learning more</h2>
 
       <p>Real-time materialized views are a powerful construct for figuring out what is happening right now. Because they update in an incremental manner, their performance remains fast while also having a strong fault tolerance story.<p>

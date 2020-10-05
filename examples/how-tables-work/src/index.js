@@ -38,7 +38,7 @@ function materialized_view(container) {
 
     part_width: 200,
     part_height: 50,
-    part_margin_bottom: 20,
+    part_margin_bottom: 25,
     part_id_margin_left: -15,
     part_id_margin_top: 15,
 
@@ -149,7 +149,7 @@ function repartitioning(container) {
 
     part_width: 100,
     part_height: 25,
-    part_margin_bottom: 20,
+    part_margin_bottom: 25,
     part_id_margin_left: -15,
     part_id_margin_top: 15,
 
@@ -236,11 +236,11 @@ function repartitioning(container) {
         const { key } = row;
         const before = state[key] || { n: 0, sum: 0 };
 
-        before.n++;
-        before.sum += row.value.reading;
-
         return {
-          [key] : before
+          [key] : {
+            n: before.n + 1,
+            sum: before.sum + row.value.reading
+          }
         };
       },
       columns: [
@@ -289,7 +289,7 @@ function replaying_from_changelog(container) {
 
     part_width: 100,
     part_height: 25,
-    part_margin_bottom: 20,
+    part_margin_bottom: 25,
     part_id_margin_left: -15,
     part_id_margin_top: 15,
 
@@ -392,7 +392,7 @@ function replaying_from_compacted(container) {
 
     part_width: 100,
     part_height: 25,
-    part_margin_bottom: 20,
+    part_margin_bottom: 25,
     part_id_margin_left: -15,
     part_id_margin_top: 15,
 
@@ -495,7 +495,7 @@ function latest(container) {
 
     part_width: 200,
     part_height: 50,
-    part_margin_bottom: 20,
+    part_margin_bottom: 25,
     part_id_margin_left: -15,
     part_id_margin_top: 15,
 
@@ -586,180 +586,8 @@ function latest(container) {
   s.render();
 }
 
-function chained(container) {
-  const styles = {
-    svg_width: 750,
-    svg_height: 300,
-
-    pq_width: 145,
-    pq_height: 75,
-    pq_margin_top: 50,
-    pq_label_margin_left: 0,
-    pq_label_margin_bottom: 10,
-
-    part_width: 100,
-    part_height: 25,
-    part_margin_bottom: 20,
-    part_id_margin_left: -15,
-    part_id_margin_top: 15,
-
-    row_width: 10,
-    row_height: 10,
-    row_margin_left: 8,
-    row_offset_right: 10,
-
-    d_row_enter_offset: 15,
-
-    render_stream_time: false,
-
-    ms_px: 5
-  };
-
-  const s = new Specimen(container, styles);
-
-  s.add_root({
-    name: "readings",
-    kind: "stream",
-    partitions: input_partitions
-  });
-
-  s.add_child(["readings"], {
-    name: "pq1",
-    kind: "persistent_query",
-    into: "changelog-1",
-    query_text: [
-      "CREATE TABLE latest_readings AS",
-      "    SELECT sensor,",
-      "           LATEST_BY_OFFSET(reading)",
-      "              AS last",
-      "    FROM readings",
-      "    GROUP BY sensor",
-      "    EMIT CHANGES;"
-    ],
-    select: function(context, row) {
-      const { delta } = context;
-      const { key, value } = row;
-
-      const v = delta[key];
-
-      return { ...row, ... { value: v } };
-    },
-    aggregate: {
-      init: function() {
-        return {
-        };
-      },
-      delta: function(state, row) {
-        const { key } = row;
-
-        return {
-          [key] : {
-            last: row.value.reading
-          }
-        };
-      },
-      columns: [
-        {
-          name: "sensor",
-          width: 10,
-          lookup: (row) => row.key
-        },
-        {
-          name: "last",
-          width: 5,
-          lookup: (row) => row.value.last
-        }
-      ]
-    },
-    style: {
-      materialized_view_height: 110,
-      fill: function(before_row, after_row) {
-        return "#66CC69";
-      }
-    }
-  });
-
-  s.add_child(["pq1"], {
-    name: "changelog-1",
-    kind: "stream",
-    partitions: [
-      [],
-      []
-    ]
-  });
-
-  s.add_child(["changelog-1"], {
-    name: "pq2",
-    kind: "persistent_query",
-    into: "changelog-2",
-    query_text: [
-      "CREATE TABLE n_readings AS",
-      "    SELECT sensor,",
-      "           COUNT(last) as n",
-      "    FROM latest_readings",
-      "    GROUP BY sensor",
-      "    EMIT CHANGES;"
-    ],
-    select: function(context, row) {
-      const { delta } = context;
-      const { key, value } = row;
-
-      const v = {
-        count: delta[key]
-      }
-
-      return { ...row, ... { value: v } };
-    },
-    aggregate: {
-      init: function() {
-        return {
-        };
-      },
-      delta: function(state, row) {
-        const { key } = row;
-        const before = state[key] || 0;
-        const after = before + 1;
-
-        return {
-          [key] : after
-        };
-      },
-      columns: [
-        {
-          name: "sensor",
-          width: 10,
-          lookup: (row) => row.key
-        },
-        {
-          name: "n",
-          width: 5,
-          lookup: (row) => row.value.count
-        }
-      ]
-    },
-    style: {
-      materialized_view_height: 110,
-      fill: function(before_row, after_row) {
-        return "#D8365D";
-      }
-    }
-  });
-
-  s.add_child(["pq2"], {
-    name: "changelog-2",
-    kind: "stream",
-    partitions: [
-      [],
-      []
-    ]
-  });
-
-  s.render();
-}
-
 materialized_view("#materialized-view");
 repartitioning("#repartitioning");
 replaying_from_changelog("#replaying-from-changelog");
 replaying_from_compacted("#replaying-from-compacted");
 latest("#latest");
-chained("#chained");
