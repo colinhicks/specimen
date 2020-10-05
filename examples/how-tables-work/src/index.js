@@ -30,7 +30,7 @@ function materialized_view(container) {
     svg_width: 750,
     svg_height: 375,
 
-    pq_width: 200,
+    pq_width: 195,
     pq_height: 150,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -141,7 +141,7 @@ function repartitioning(container) {
     svg_width: 750,
     svg_height: 300,
 
-    pq_width: 120,
+    pq_width: 110,
     pq_height: 75,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -281,7 +281,7 @@ function replaying_from_changelog(container) {
     svg_width: 400,
     svg_height: 300,
 
-    pq_width: 130,
+    pq_width: 125,
     pq_height: 75,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -487,7 +487,7 @@ function latest(container) {
     svg_width: 750,
     svg_height: 375,
 
-    pq_width: 200,
+    pq_width: 195,
     pq_height: 150,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
