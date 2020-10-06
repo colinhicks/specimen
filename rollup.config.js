@@ -19,6 +19,16 @@ const watch = {
 
 export default [
   {
+    input: "./src/index.js",
+    output: {
+      name: "dist",
+      file: "./dist/specimen.js",
+      format: "iife"
+    },
+    plugins,
+    watch,
+  },
+  {
     input: "./examples/basics/src/index.js",
     output: {
       file: "./examples/basics/bundle.js",
