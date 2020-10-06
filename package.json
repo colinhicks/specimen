@@ -1,5 +1,5 @@
 {
-  "name": "@mdrogalis/specimen",
+  "name": "@MichaelDrogalis/specimen",
   "version": "0.0.1",
   "scripts": {
     "dev": "npx rollup -c --watch",
