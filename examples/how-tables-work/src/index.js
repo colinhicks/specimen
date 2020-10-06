@@ -403,7 +403,7 @@ function replaying_from_compacted(container) {
 
     render_stream_time: false,
 
-    ms_px: 3.5
+    ms_px: 2
   };
 
   const s = new Specimen(container, styles);
@@ -526,6 +526,7 @@ function latest(container) {
     query_text: [
       "CREATE TABLE latest_readings AS",
       "    SELECT sensor,",
+      "           LATEST_BY_OFFSET(area) AS area,",
       "           LATEST_BY_OFFSET(reading) AS last",
       "    FROM readings",
       "    GROUP BY sensor",
@@ -549,6 +550,7 @@ function latest(container) {
 
         return {
           [key] : {
+            area: row.value.area,
             last: row.value.reading
           }
         };
@@ -556,12 +558,17 @@ function latest(container) {
       columns: [
         {
           name: "sensor",
-          width: 11,
+          width: 10,
           lookup: (row) => row.key
         },
         {
+          name: "area",
+          width: 7,
+          lookup: (row) => row.value.area,
+        },
+        {
           name: "last",
-          width: 11,
+          width: 4,
           lookup: (row) => row.value.last
         }
       ]
@@ -633,7 +640,7 @@ function chained(container) {
       "    SELECT",
       "         sensor,",
       "         LATEST_BY_OFFSET(area)",
-      "           AS area",
+      "           AS area,",
       "         LATEST_BY_OFFSET(reading)",
       "            AS last",
       "    FROM readings",
@@ -792,9 +799,9 @@ function chained(container) {
   s.render();
 }
 
-// materialized_view("#materialized-view");
-// repartitioning("#repartitioning");
-// replaying_from_changelog("#replaying-from-changelog");
-// replaying_from_compacted("#replaying-from-compacted");
-// latest("#latest");
+materialized_view("#materialized-view");
+repartitioning("#repartitioning");
+replaying_from_changelog("#replaying-from-changelog");
+replaying_from_compacted("#replaying-from-compacted");
+latest("#latest");
 chained("#chained");
