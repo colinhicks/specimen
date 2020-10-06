@@ -1,6 +1,6 @@
 {
   "name": "specimen",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "dev": "npx rollup -c --watch",
     "build": "NODE_ENV=production npx rollup -c"
