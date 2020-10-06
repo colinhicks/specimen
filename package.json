@@ -1,7 +1,7 @@
 {
   "name": "@MichaelDrogalis/specimen",
   "repository": "git://github.com/MichaelDrogalis/specimen.git",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "scripts": {
     "dev": "npx rollup -c --watch",
     "build": "NODE_ENV=production npx rollup -c"

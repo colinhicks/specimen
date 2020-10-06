@@ -23,7 +23,7 @@ export default [
     output: {
       name: "dist",
       file: "./dist/specimen.js",
-      format: "iife"
+      format: "es"
     },
     plugins,
     watch,
