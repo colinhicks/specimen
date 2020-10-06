@@ -4,7 +4,7 @@ export function build_data(config, styles, computed) {
   const { aggregate, pq_style } = config;
   const { columns } = aggregate;
   const { materialized_view_height } = pq_style;
-  const { mv_container_fill, mv_row_height, mv_margin_top } = styles;
+  const { mv_container_fill, mv_row_height, mv_margin_top, font_size } = styles;
   const { top_y, left_x, width } = computed;
 
   const bottom_y = top_y + materialized_view_height;
@@ -25,7 +25,8 @@ export function build_data(config, styles, computed) {
       },
       mv_margin_top,
       mv_row_height,
-      mv_margin_top
+      mv_margin_top,
+      font_size
     },
     vars: {
       columns,
@@ -93,12 +94,14 @@ export function render(data) {
   const d_dashes_upper = create_svg_el("text");
   d_dashes_upper.setAttributeNS(null, "x", container.x);
   d_dashes_upper.setAttributeNS(null, "y", container.y + mv_margin_top);
+  d_dashes_upper.setAttributeNS(null, "font-size", rendering.font_size);
   d_dashes_upper.classList.add("code");
   d_dashes_upper.textContent = make_dashes(columns);
 
   const d_headers = create_svg_el("text");
   d_headers.setAttributeNS(null, "x", container.x);
   d_headers.setAttributeNS(null, "y", container.y + mv_margin_top + mv_row_height);
+  d_headers.setAttributeNS(null, "font-size", rendering.font_size);
   d_headers.style.whiteSpace = "pre";
   d_headers.classList.add("code");
   d_headers.textContent = make_column_names(columns);
@@ -106,6 +109,7 @@ export function render(data) {
   const d_dashes_lower = create_svg_el("text");
   d_dashes_lower.setAttributeNS(null, "x", container.x);
   d_dashes_lower.setAttributeNS(null, "y", container.y + mv_margin_top + (mv_row_height * 2));
+  d_dashes_lower.setAttributeNS(null, "font-size", rendering.font_size);
   d_dashes_lower.classList.add("code");
   d_dashes_lower.textContent = make_dashes(columns);
   
@@ -141,6 +145,7 @@ export function update_table(mv, row) {
     d_row.id = el_id;
     d_row.setAttributeNS(null, "x", container.x);
     d_row.setAttributeNS(null, "y", vars.next_row_y);
+    d_row.setAttributeNS(null, "font-size", rendering.font_size);
     d_row.style.whiteSpace = "pre";
     d_row.classList.add("code");
     d_row.textContent = make_row(columns, table_row);

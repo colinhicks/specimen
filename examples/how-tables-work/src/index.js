@@ -586,8 +586,215 @@ function latest(container) {
   s.render();
 }
 
-materialized_view("#materialized-view");
-repartitioning("#repartitioning");
-replaying_from_changelog("#replaying-from-changelog");
-replaying_from_compacted("#replaying-from-compacted");
-latest("#latest");
+function chained(container) {
+  const styles = {
+    svg_width: 750,
+    svg_height: 300,
+
+    pq_width: 125,
+    pq_height: 75,
+    pq_margin_top: 50,
+    pq_label_margin_left: 0,
+    pq_label_margin_bottom: 10,
+
+    part_width: 55,
+    part_height: 25,
+    part_margin_bottom: 20,
+    part_id_margin_left: -7,
+    part_id_margin_top: 15,
+
+    row_width: 5,
+    row_height: 5,
+    row_margin_left: 4,
+    row_offset_right: 6,
+
+    d_row_enter_offset: 5,
+
+    render_stream_time: false,
+
+    font_size: "0.7em",
+    ms_px: 5
+  };
+
+  const s = new Specimen(container, styles);
+
+  s.add_root({
+    name: "readings",
+    kind: "stream",
+    partitions: input_partitions
+  });
+
+  s.add_child(["readings"], {
+    name: "pq1",
+    kind: "persistent_query",
+    into: "changelog-1",
+    query_text: [
+      "CREATE TABLE latest_readings AS",
+      "    SELECT",
+      "         sensor,",
+      "         LATEST_BY_OFFSET(area)",
+      "           AS area",
+      "         LATEST_BY_OFFSET(reading)",
+      "            AS last",
+      "    FROM readings",
+      "    GROUP BY sensor",
+      "    EMIT CHANGES;"
+    ],
+    select: function(context, row) {
+      const { delta } = context;
+      const { key, value } = row;
+
+      const v = delta[key];
+
+      return { ...row, ... { value: v } };
+    },
+    aggregate: {
+      init: function() {
+        return {
+        };
+      },
+      delta: function(state, row) {
+        const { key } = row;
+
+        return {
+          [key] : {
+            area: row.value.area,
+            last: row.value.reading
+          }
+        };
+      },
+      columns: [
+        {
+          name: "sensor",
+          width: 8,
+          lookup: (row) => row.key
+        },
+        {
+          name: "area",
+          width: 7,
+          lookup: (row) => row.value.area
+        },
+        {
+          name: "last",
+          width: 4,
+          lookup: (row) => row.value.last
+        }
+      ]
+    },
+    style: {
+      materialized_view_height: 110,
+      fill: function(before_row, after_row) {
+        return "#66CC69";
+      }
+    }
+  });
+
+  s.add_child(["pq1"], {
+    name: "changelog-1",
+    kind: "stream",
+    partitions: [
+      [],
+      []
+    ]
+  });
+
+  s.add_child(["changelog-1"], {
+    name: "pq2",
+    kind: "persistent_query",
+    into: "repart",
+    query_text: [
+      "[[ internal ]]"
+    ],
+    select: function(context, row) {
+      return row;
+    },
+    partition_by: function(context, before_row, after_row) {
+      return before_row.value.area;
+    }
+  });
+
+  s.add_child(["pq2"], {
+    name: "repart",
+    kind: "stream",
+    partitions: [
+      [],
+      []
+    ]
+  });
+
+
+  s.add_child(["repart"], {
+    name: "pq3",
+    kind: "persistent_query",
+    into: "changelog-2",
+    query_text: [
+      "CREATE TABLE n_readings AS",
+      "    SELECT area,",
+      "           COUNT(last) as n",
+      "    FROM latest_readings",
+      "    GROUP BY area",
+      "    EMIT CHANGES;"
+    ],
+    select: function(context, row) {
+      const { delta } = context;
+      const { key, value } = row;
+
+      const v = {
+        count: delta[key]
+      }
+
+      return { ...row, ... { value: v } };
+    },
+    aggregate: {
+      init: function() {
+        return {
+        };
+      },
+      delta: function(state, row) {
+        const { key } = row;
+        const before = state[key] || 0;
+        const after = before + 1;
+
+        return {
+          [key] : after
+        };
+      },
+      columns: [
+        {
+          name: "area",
+          width: 10,
+          lookup: (row) => row.key
+        },
+        {
+          name: "n",
+          width: 10,
+          lookup: (row) => row.value.count
+        }
+      ]
+    },
+    style: {
+      materialized_view_height: 110,
+      fill: function(before_row, after_row) {
+        return "#D8365D";
+      }
+    }
+  });
+
+  s.add_child(["pq3"], {
+    name: "changelog-2",
+    kind: "stream",
+    partitions: [
+      [],
+      []
+    ]
+  });
+
+  s.render();
+}
+
+// materialized_view("#materialized-view");
+// repartitioning("#repartitioning");
+// replaying_from_changelog("#replaying-from-changelog");
+// replaying_from_compacted("#replaying-from-compacted");
+// latest("#latest");
+chained("#chained");

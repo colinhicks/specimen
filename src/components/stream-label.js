@@ -3,7 +3,7 @@ import { uuidv4, create_svg_el } from './../util';
 export function build_data(config, styles, computed) {
   const { name } = config;
   const { coll_tip_len, coll_foot_len, coll_tip_margin_top } = styles;
-  const { part_width, part_height } = styles;
+  const { part_width, part_height, font_size } = styles;
   const { top_y, midpoint_x } = computed;
 
   const left_x = midpoint_x - (part_width / 2);
@@ -44,7 +44,8 @@ export function build_data(config, styles, computed) {
         y1: coll_tip_bottom_y,
         x2: right_x,
         y2: coll_foot_bottom_y
-      }
+      },
+      font_size
     },
     vars: {
       name: name
@@ -66,6 +67,7 @@ export function render(data) {
   d_text.setAttributeNS(null, "x", text.x);
   d_text.setAttributeNS(null, "y", text.y);
   d_text.setAttributeNS(null, "text-anchor", "middle");
+  d_text.setAttributeNS(null, "font-size", rendering.font_size);
   d_text.classList.add("code");
   d_text.textContent = vars.name;
 

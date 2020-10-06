@@ -13,6 +13,7 @@ export function build_data(config, styles, computed) {
   const { pq_label_margin_left, pq_label_margin_bottom } = styles;
   const { pq_metadata_offset_top, pq_metadata_margin_top } = styles;
   const { st_margin_top, st_margin_left } = styles;
+  const { font_size } = styles;
 
   const { predecessors, successors, top_y, midpoint_x } = computed;
 
@@ -81,7 +82,8 @@ export function build_data(config, styles, computed) {
         opacity: pq_container_opacity
       },
       style: pq_style || {},
-      top_component: index == 0
+      top_component: index == 0,
+      font_size
     },
     vars: {
       query_text: query_text,
@@ -139,6 +141,7 @@ export function render(data) {
   const d_label = create_svg_el("text");
   d_label.setAttributeNS(null, "x", label.x);
   d_label.setAttributeNS(null, "y", label.y);
+  d_label.setAttributeNS(null, "font-size", rendering.font_size);
   d_label.classList.add("code");
   d_label.textContent = name;
 

@@ -56,6 +56,7 @@ export const styles = {
   render_controls: true,
   render_stream_time: false,
 
+  font_size: "1em",
   seek_ms: 25,
   ms_px: 2
 };

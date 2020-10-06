@@ -47,6 +47,7 @@ export function build_data(config, styles, computed) {
           part_container_fill
         } = styles;
   const { row_height, row_width, row_margin_left, row_offset_right } = styles;
+  const { font_size } = styles;
 
   const { successors, top_y, midpoint_x } = computed;
 
@@ -92,6 +93,7 @@ export function build_data(config, styles, computed) {
         height: part_height,
         fill: part_container_fill
       },
+      font_size
     },
     vars: {
       partition_id: partition,
@@ -122,6 +124,7 @@ export function render(data, styles, computed) {
   const text = create_svg_el("text");
   text.setAttributeNS(null, "x", partition_label.x);
   text.setAttributeNS(null, "y", partition_label.y);
+  text.setAttributeNS(null, "font-size", rendering.font_size);
   text.classList.add("code");
   text.textContent = vars.partition_id;
 
