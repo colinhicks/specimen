@@ -3281,7 +3281,7 @@ function render$b(data) {
 
   const div = document.createElement("div");
   div.id = id;
-  div.classList.add("controls");
+  div.classList.add("specimen-controls");
 
   const play = document.createElement("button");
   play.id = rendering.play.id;
