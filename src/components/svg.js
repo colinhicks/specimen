@@ -22,6 +22,7 @@ export function render(data) {
   svg.id = id;
   svg.setAttributeNS(null, "width", width);
   svg.setAttributeNS(null, "height", height);
+  svg.setAttributeNS(null, "viewBox", `0 0 ${width} ${height}`);
   svg.classList.add("animation");
 
   return svg;

@@ -6,7 +6,6 @@ import hljs_js from 'highlight.js/lib/languages/javascript';
 
 hljs.registerLanguage('sql', ksql);
 hljs.registerLanguage('javascript', hljs_js);
-hljs.initHighlightingOnLoad();
 
 const flavors = [
   "#0074A2",
@@ -164,7 +163,7 @@ function transformation(container) {
 
       const v = {
         reading: value.reading,
-        country: value.location.toUpperCase()
+        location: value.location.toUpperCase()
       }
 
       return { ...row, ... { value: v } };
@@ -698,6 +697,7 @@ const css = `
 
      .specimen .pq-code-container {         
          margin-bottom: 10px;
+         overflow-x: auto;
      }
 
      .specimen .controls {
@@ -712,6 +712,7 @@ const css = `
          display: inline-block;
          width: 9%;
          margin-right: 1%;
+         min-width: 56px;
      }
      
      .specimen .controls input[type="range"] {
@@ -744,7 +745,7 @@ const css = `
      }
 
      pre.narrative-code {
-        padding: 0 15px !important;
+        padding: 0 15px 15px 15px !important;
         background: #f8f8f8 !important;
      }
 
@@ -763,3 +764,7 @@ consumers("#multi-consumer");
 const style = document.createElement('style');
 style.innerHTML = css;
 document.body.appendChild(style);
+
+document.querySelectorAll('pre code').forEach((block) => {
+  hljs.highlightBlock(block);
+});
