@@ -55,6 +55,7 @@ export function render(data) {
 
   const g = create_svg_el("g");
   g.id = id;
+  g.classList.add('source-partitions');
 
   const d_container = create_svg_el("rect");
   d_container.setAttributeNS(null, "x", container.x);

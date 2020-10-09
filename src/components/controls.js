@@ -53,58 +53,19 @@ export function render(data) {
 
   const play = document.createElement("button");
   play.id = rendering.play.id;
-  play.textContent = rendering.play.text;
-  play.onclick = timeline.play;
 
-  const pause = document.createElement("button");
-  pause.id = rendering.pause.id;
-  pause.textContent = rendering.pause.text;
-  pause.onclick = timeline.pause;
-
-  const restart = document.createElement("button");
-  restart.id = rendering.restart.id;
-  restart.textContent = rendering.restart.text;
-  restart.onclick = timeline.restart;
-
-  const manual_left = document.createElement("button");
-  manual_left.id = rendering.manual_left.id;
-  manual_left.textContent = rendering.manual_left.text;
-  manual_left.onclick = () => {
-    timeline.pause();
-    timeline.seek(Math.max(0, timeline.currentTime - seek_ms));
-  };
-
-  // Continuously rewind animation while the rewind button is held down
-  manual_left.onmousedown = () => {
-    manual_left.interval = setInterval(() => {
-      timeline.seek(Math.max(0, timeline.currentTime - seek_ms));
-    }, 25);
-  }
-  manual_left.onmouseup = () => {
-    if (manual_left.interval) {
-      clearInterval(manual_left.interval);
+  let playing = true;
+  play.textContent = "Pause";
+  play.addEventListener('click', (e) => {
+    playing = !playing;
+    if (!playing) {
+      timeline.pause();
+      play.textContent = "Play";
+    } else {
+      timeline.play();
+      play.textContent = "Pause";
     }
-  }
-
-  const manual_right = document.createElement("button");
-  manual_right.id = rendering.manual_right.id;
-  manual_right.textContent = rendering.manual_right.text;
-  manual_right.onclick = () => {
-    timeline.pause();
-    timeline.seek(Math.min(timeline.duration, timeline.currentTime + seek_ms));
-  };
-
-  // Continuously play animation while the manual step forward button is held down
-  manual_right.onmousedown = () => {
-    manual_right.interval = setInterval(() => {
-      timeline.seek(Math.max(0, timeline.currentTime + seek_ms));
-    }, 25);
-  }
-  manual_right.onmouseup = () => {
-    if (manual_right.interval) {
-      clearInterval(manual_right.interval);
-    }
-  }
+  })
 
   const progress = document.createElement("input");
   progress.id = rendering.progress.id;
@@ -116,6 +77,8 @@ export function render(data) {
     const t = timeline.duration * (progress.valueAsNumber / 100);
     timeline.pause();
     timeline.seek(t);
+    playing = false;
+    play.textContent = "Play";
 
     // Prevent sliding to end and back to middle completing the animation.
     if (t != timeline.duration) {
@@ -124,10 +87,6 @@ export function render(data) {
   };
 
   div.appendChild(play);
-  div.appendChild(pause);
-  div.appendChild(restart);
-  div.appendChild(manual_left);
-  div.appendChild(manual_right);
   div.appendChild(progress);
 
   return div;
