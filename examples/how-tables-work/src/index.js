@@ -141,7 +141,7 @@ function repartitioning(container) {
     svg_width: 750,
     svg_height: 300,
 
-    pq_width: 110,
+    pq_width: 120,
     pq_height: 75,
     pq_margin_top: 50,
     pq_label_margin_left: 0,
@@ -167,10 +167,28 @@ function repartitioning(container) {
 
   const s = new Specimen(container, styles);
 
+  const styled_input_partitions = [
+  [
+    { key: "sensor-1", value: { reading: 45, area: "wheel" }, t: 10, style: { fill: "#0074A2" } },
+    { key: "sensor-2", value: { reading: 41, area: "motor" }, t: 25, style: { fill: "#FFC40C" } },
+    { key: "sensor-1", value: { reading: 92, area: "wheel" }, t: 34, style: { fill: "#0074A2" } },
+    { key: "sensor-2", value: { reading: 13, area: "engine" }, t: 42, style: { fill: "#F26135" } },
+    { key: "sensor-2", value: { reading: 90, area: "engine" }, t: 45, style: { fill: "#F26135" } }
+  ],
+  [
+    { key: "sensor-4", value: { reading: 95, area: "motor" }, t: 11 , style: { fill: "#FFC40C" } },
+    { key: "sensor-3", value: { reading: 67, area: "engine" }, t: 26, style: { fill: "#F26135" } },
+    { key: "sensor-3", value: { reading: 52, area: "wheel" }, t: 31, style: { fill: "#0074A2" } },
+    { key: "sensor-4", value: { reading: 55, area: "engine" }, t: 43, style: { fill: "#F26135" } },
+    { key: "sensor-3", value: { reading: 37, area: "engine" }, t: 57, style: { fill: "#F26135" } },
+  ]
+];
+
+
   s.add_root({
     name: "readings",
     kind: "stream",
-    partitions: input_partitions
+    partitions: styled_input_partitions
   });
 
   s.add_child(["readings"], {
@@ -717,6 +735,11 @@ function chained(container) {
     },
     partition_by: function(context, before_row, after_row) {
       return before_row.value.area;
+    },
+    style: {
+      fill: function(before_row, after_row) {
+        return "#b136d8";
+      }
     }
   });
 
