@@ -851,7 +851,7 @@ const css = `
      }
      .specimen .code {
          font-family: monospace;
-         font-size: 14px;
+         font-size: 13px;
      }
      .specimen .external-objects .code {
          font-size: 12px;
@@ -864,30 +864,40 @@ const css = `
          margin-bottom: 10px;
          overflow-x: auto;
      }
-     .specimen .controls {
+     .specimen .specimen-controls {
          padding-bottom: 0px;
      }
      .specimen .animation {
          padding-top: 0px;
      }
      
-     .specimen .controls button {
+     .specimen .specimen-controls button {
          display: inline-block;
          width: 9%;
          margin-right: 1%;
          min-width: 56px;
-     }
-     
-     .specimen .controls input[type="range"] {
+     }     
+     .specimen .specimen-controls input[type="range"] {
          display: inline-block;
          width: 90%;
      }
      .specimen .pq-code-container pre {
          padding: 3px !important;         
      }
-     .specimen .controls button {
+     .specimen .specimen-controls button {
          margin-right: 5px;
      }
+
+     #chained .persistent-query-container g:last-child:not(.source-partitions) .code {
+         font-size: 9px;
+     }
+
+     #chained .code { font-size: 11px; }
+
+     #replaying-from-changelog .pq-code-container pre, #replaying-from-compacted .pq-code-container pre {
+         transform: translateX(-80px) !important;
+     }
+
      pre.narrative-code {
         padding: 0 15px 15px 15px !important;
         background: #f8f8f8 !important;
